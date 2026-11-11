@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+:root {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-tech: "Space Mono", monospace;
+  --color-page: #F8F7FB;
+  --color-surface: #FFFFFF;
+  --color-ink: #111116;
+  --color-muted: #62616F;
+  --color-border: #E8E4EF;
+  --color-lavender: #BCA4FF;
+  --color-lavender-soft: #F1ECFF;
+  --color-blue: #0878F9;
+  --color-magenta: #ED009F;
+  --color-magenta-soft: #FCE4F2;
+}
+
+body {
+  font-family: var(--font-display);
+}
