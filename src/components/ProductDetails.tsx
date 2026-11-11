@@ -13,85 +13,119 @@ type ProductDetailsData = {
   images: string[]
 }
 
-function ProductDetails() {
-  const { id } = useParams()
-  const { items, addToCart } = useCart()
+type ProductResult =
+  | { status: 'success'; product: ProductDetailsData }
+  | { status: 'error'; message: string }
 
-  const [product, setProduct] = useState<ProductDetailsData | null>(null)
+const minimumLoadingTime = 500
+
+function ProductSkeleton() {
+  return (
+    <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 sm:px-10">
+      <div className="mx-auto max-w-7xl">
+        <p
+          role="status"
+          className="font-[var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
+        >
+          Loading your potential attachment...
+        </p>
+
+        <div aria-hidden="true" className="mt-8 grid gap-10 md:grid-cols-2">
+          <div className="aspect-square bg-[var(--color-lavender)]" />
+
+          <div className="space-y-4">
+            <div className="h-4 w-1/4 bg-[var(--color-lavender)]" />
+            <div className="h-10 w-3/4 bg-[var(--color-lavender)]" />
+            <div className="h-4 w-full bg-[var(--color-lavender)]" />
+            <div className="h-4 w-2/3 bg-[var(--color-lavender)]" />
+            <div className="mt-6 h-8 w-1/4 bg-[var(--color-lavender)]" />
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function ProductError({ message }: { message: string }) {
+  return (
+    <main className="min-h-screen bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)]">
+      <p role="alert">{message}</p>
+
+      <Link
+        to="/#catalog"
+        className="mt-6 inline-block font-semibold text-[var(--color-blue)]"
+      >
+        ← Back to the catalog
+      </Link>
+    </main>
+  )
+}
+
+function ProductDetailsContent({ id }: { id: number }) {
+  const { items, addToCart } = useCart()
+  const [result, setResult] = useState<ProductResult | null>(null)
   const [quantity, setQuantity] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let ignoreResult = false
+    const controller = new AbortController()
+    const startedAt = performance.now()
+    let displayTimer: number | undefined
 
     async function loadProduct() {
-      setIsLoading(true)
-      setError(null)
-      setProduct(null)
-      setQuantity(1)
+      let nextResult: ProductResult
 
       try {
-        const response = await fetch(`https://dummyjson.com/products/${id}`)
+        const response = await fetch(`https://dummyjson.com/products/${id}`, {
+          signal: controller.signal,
+        })
 
-        if (!response.ok) {
-          throw new Error('Could not load this product')
-        }
+        if (response.status === 404) {
+          nextResult = { status: 'error', message: 'Product not found.' }
+        } else {
+          if (!response.ok) throw new Error('Could not load this product')
 
-        const data: ProductDetailsData = await response.json()
-
-        if (!ignoreResult) {
-          setProduct(data)
+          const product: ProductDetailsData = await response.json()
+          nextResult = { status: 'success', product }
         }
       } catch {
-        if (!ignoreResult) {
-          setError('This product glitched out or does not exist.')
-        }
-      } finally {
-        if (!ignoreResult) {
-          setIsLoading(false)
+        nextResult = {
+          status: 'error',
+          message: 'This product glitched out. Please try again.',
         }
       }
+
+      if (controller.signal.aborted) return
+
+      const remainingTime =
+        minimumLoadingTime - (performance.now() - startedAt)
+
+      if (remainingTime <= 0) {
+        setResult(nextResult)
+        return
+      }
+
+      displayTimer = window.setTimeout(() => {
+        setResult(nextResult)
+      }, remainingTime)
     }
 
-    if (id) {
-      void loadProduct()
-    } else {
-      setError('This product does not have a valid ID.')
-      setIsLoading(false)
-    }
+    void loadProduct()
 
     return () => {
-      ignoreResult = true
+      controller.abort()
+      window.clearTimeout(displayTimer)
     }
   }, [id])
 
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-[var(--color-page)] px-6 py-16">
-        <p role="status">Loading product...</p>
-      </main>
-    )
+  if (!result) return <ProductSkeleton />
+
+  if (result.status === 'error') {
+    return <ProductError message={result.message} />
   }
 
-  if (error || !product) {
-    return (
-      <main className="min-h-screen bg-[var(--color-page)] px-6 py-16">
-        <p role="alert">{error ?? 'Product not found.'}</p>
-
-        <Link
-          to="/#catalog"
-          className="mt-6 inline-block font-semibold text-[var(--color-blue)]"
-        >
-          ← Back to the catalog
-        </Link>
-      </main>
-    )
-  }
-
+  const { product } = result
   const quantityInCart =
     items.find((item) => item.id === product.id)?.quantity ?? 0
-
   const remainingStock = Math.max(0, product.stock - quantityInCart)
 
   return (
@@ -189,4 +223,13 @@ function ProductDetails() {
   )
 }
 
-export default ProductDetails
+export default function ProductDetails() {
+  const { id } = useParams()
+  const productId = Number(id)
+
+  if (!id || !/^\d+$/.test(id) || !Number.isSafeInteger(productId) || productId < 1) {
+    return <ProductError message="This product does not have a valid ID." />
+  }
+
+  return <ProductDetailsContent key={productId} id={productId} />
+}

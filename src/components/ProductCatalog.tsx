@@ -20,6 +20,7 @@ type Product = {
 
 type ProductsResponse = {
   products: Product[]
+  total: number
 }
 
 type Category = {
@@ -33,12 +34,18 @@ type SearchDraft = {
 }
 
 type ProductResults =
-  | { requestUrl: string; status: 'success'; products: Product[] }
+  | { requestUrl: string; status: 'success'; data: ProductsResponse }
   | { requestUrl: string; status: 'error' }
 
-const productsEndpoint = 'https://dummyjson.com/products'
+type FilterOption = {
+  value: string
+  label: string
+}
 
-const priceOptions = [
+const productsEndpoint = 'https://dummyjson.com/products'
+const pageSize = 12
+
+const priceOptions: FilterOption[] = [
   { value: '', label: 'Sort by price' },
   { value: 'price-asc', label: 'Price: low to high' },
   { value: 'price-desc', label: 'Price: high to low' },
@@ -71,48 +78,38 @@ const categoryMessages: Record<string, string> = {
   'womens-watches': 'Time heals everything. Apparently.',
 }
 
-function closeDropdown(dropdown: HTMLDetailsElement | null) {
-  if (!dropdown) return
-
-  dropdown.open = false
-  dropdown.querySelector('summary')?.focus()
+type FilterDropdownProps = {
+  label: string
+  selectedLabel: string
+  value: string | null
+  options: FilterOption[]
+  onSelect: (value: string) => void
 }
 
-function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
-  const { items, addToCart } = useCart()
-  const { key: locationKey, pathname, search, hash } = useLocation()
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const categoryDropdown = useRef<HTMLDetailsElement>(null)
-  const priceDropdown = useRef<HTMLDetailsElement>(null)
+function FilterDropdown({
+  label,
+  selectedLabel,
+  value,
+  options,
+  onSelect,
+}: FilterDropdownProps) {
+  const dropdownRef = useRef<HTMLDetailsElement>(null)
 
-  const query = searchParams.get('q')?.trim() ?? ''
-  const category = query ? '' : (searchParams.get('category') ?? '')
-  const sort = searchParams.get('sort')
-  const priceSort = sort === 'price-asc' || sort === 'price-desc' ? sort : ''
-  const priceLabel =
-    priceOptions.find((option) => option.value === priceSort)?.label ??
-    'Sort by price'
+  function closeAndFocusTrigger() {
+    const dropdown = dropdownRef.current
+    if (!dropdown) return
 
-  const [searchDraft, setSearchDraft] = useState<SearchDraft | null>(null)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [categoryError, setCategoryError] = useState(false)
-  const [results, setResults] = useState<ProductResults | null>(null)
-
-  const activeDraft =
-    searchDraft?.locationKey === locationKey ? searchDraft : null
-  const searchValue = activeDraft?.value ?? query
-  const debouncedDraft = useDebounce(activeDraft, 400)
+    dropdown.open = false
+    dropdown.querySelector('summary')?.focus()
+  }
 
   useEffect(() => {
     function handleOutsidePointerDown(event: PointerEvent) {
+      const dropdown = dropdownRef.current
       const target = event.target
-      if (!(target instanceof Node)) return
 
-      for (const dropdown of [categoryDropdown.current, priceDropdown.current]) {
-        if (dropdown?.open && !dropdown.contains(target)) {
-          dropdown.open = false
-        }
+      if (dropdown?.open && target instanceof Node && !dropdown.contains(target)) {
+        dropdown.open = false
       }
     }
 
@@ -122,6 +119,165 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
       document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
     }
   }, [])
+
+  return (
+    <details
+      ref={dropdownRef}
+      name="catalog-filters"
+      className="relative w-fit max-w-full"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && event.currentTarget.open) {
+          event.preventDefault()
+          closeAndFocusTrigger()
+        }
+      }}
+    >
+      <summary
+        aria-label={`${label}. Selected: ${selectedLabel}`}
+        className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 [&::-webkit-details-marker]:hidden"
+      >
+        <span>{selectedLabel}</span>
+        <span aria-hidden="true">▾</span>
+      </summary>
+
+      <ul className="absolute left-0 top-full z-20 mt-1 max-h-64 min-w-full overflow-y-auto border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+        {options.map((option) => (
+          <li key={option.value}>
+            <button
+              type="button"
+              aria-pressed={value === option.value}
+              onClick={() => {
+                onSelect(option.value)
+                closeAndFocusTrigger()
+              }}
+              className="block min-h-11 w-full px-4 py-2 text-left [font:inherit] hover:bg-[var(--color-page)] aria-pressed:text-[var(--color-magenta)]"
+            >
+              {option.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
+type PaginationProps = {
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}
+
+function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
+  const buttonClass =
+    'min-h-11 min-w-11 border border-[var(--color-border)] px-3 text-sm focus-visible:outline-2 focus-visible:outline-[var(--color-blue)]'
+
+  return (
+    <nav
+      aria-label="Catalog pages"
+      className="mt-8 flex flex-wrap items-center gap-2"
+    >
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onPageChange(page - 1)}
+        className={`${buttonClass} disabled:opacity-40`}
+      >
+        Previous
+      </button>
+
+      {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+        (pageNumber) => (
+          <button
+            key={pageNumber}
+            type="button"
+            aria-label={`Page ${pageNumber}`}
+            aria-current={pageNumber === page ? 'page' : undefined}
+            onClick={() => onPageChange(pageNumber)}
+            className={`${buttonClass} ${
+              pageNumber === page
+                ? 'bg-[var(--color-magenta)] font-semibold text-white'
+                : 'bg-[var(--color-surface)]'
+            }`}
+          >
+            {pageNumber}
+          </button>
+        ),
+      )}
+
+      <button
+        type="button"
+        disabled={page >= totalPages}
+        onClick={() => onPageChange(page + 1)}
+        className={`${buttonClass} disabled:opacity-40`}
+      >
+        Next
+      </button>
+    </nav>
+  )
+}
+
+function CatalogSkeleton() {
+  return (
+    <>
+      <p role="status" className="mt-8 font-[var(--font-tech)] text-sm">
+        Loading questionable attachments...
+      </p>
+
+      <div
+        aria-hidden="true"
+        className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {Array.from({ length: pageSize }, (_, index) => (
+          <div
+            key={index}
+            className="bg-[var(--color-surface)] p-4 motion-safe:animate-pulse"
+          >
+            <div className="aspect-square bg-[var(--color-lavender)]/40" />
+            <div className="mt-4 h-3 w-1/3 bg-[var(--color-lavender)]/40" />
+            <div className="mt-2 h-4 w-2/3 bg-[var(--color-lavender)]/40" />
+            <div className="mt-2 h-4 w-1/5 bg-[var(--color-lavender)]/40" />
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export default function ProductCatalog({
+  eyebrow,
+  title,
+  description,
+}: ProductCatalogProps) {
+  const { items, addToCart } = useCart()
+  const { key: locationKey, pathname, search, hash } = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const catalogRef = useRef<HTMLElement>(null)
+
+  const query = searchParams.get('q')?.trim() ?? ''
+  const category = query ? '' : (searchParams.get('category') ?? '')
+  const sort = searchParams.get('sort')
+  const priceSort = sort === 'price-asc' || sort === 'price-desc' ? sort : ''
+
+  const requestedPage = Number(searchParams.get('page') ?? '1')
+  const page =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    Number.isSafeInteger((requestedPage - 1) * pageSize)
+      ? requestedPage
+      : 1
+
+  const skip = (page - 1) * pageSize
+  const [searchDraft, setSearchDraft] = useState<SearchDraft | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryError, setCategoryError] = useState(false)
+  const [results, setResults] = useState<ProductResults | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+
+  const activeDraft =
+    searchDraft?.locationKey === locationKey ? searchDraft : null
+  const searchValue = activeDraft?.value ?? query
+  const debouncedDraft = useDebounce(activeDraft, 400)
 
   useEffect(() => {
     if (!activeDraft || debouncedDraft !== activeDraft) return
@@ -169,7 +325,10 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
     return () => controller.abort()
   }, [])
 
-  const requestParams = new URLSearchParams({ limit: '12', skip: '0' })
+  const requestParams = new URLSearchParams({
+    limit: String(pageSize),
+    skip: String(skip),
+  })
   let endpoint = productsEndpoint
 
   if (query) {
@@ -187,39 +346,68 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
   const requestUrl = `${endpoint}?${requestParams.toString()}`
 
   useEffect(() => {
-    const controller = new AbortController()
+  const controller = new AbortController()
+  const startedAt = performance.now()
+  const minimumLoadingTime = 500
+  let displayTimer: number | undefined
 
-    async function loadProducts() {
-      try {
-        const response = await fetch(requestUrl, {
-          signal: controller.signal,
-        })
+  async function loadProducts() {
+    let nextResults: ProductResults
 
-        if (!response.ok) throw new Error('Could not load products')
+    try {
+      const response = await fetch(requestUrl, {
+        signal: controller.signal,
+      })
 
-        const data: ProductsResponse = await response.json()
+      if (!response.ok) throw new Error('Could not load products')
 
-        if (!controller.signal.aborted) {
-          setResults({ requestUrl, status: 'success', products: data.products })
-        }
-      } catch {
-        if (!controller.signal.aborted) {
-          setResults({ requestUrl, status: 'error' })
-        }
-      }
+      const data: ProductsResponse = await response.json()
+      nextResults = { requestUrl, status: 'success', data }
+    } catch {
+      nextResults = { requestUrl, status: 'error' }
     }
 
-    void loadProducts()
-    return () => controller.abort()
-  }, [requestUrl])
+    if (controller.signal.aborted) return
+
+    const remainingTime = minimumLoadingTime - (performance.now() - startedAt)
+
+    if (remainingTime <= 0) {
+      setResults(nextResults)
+      return
+    }
+
+    displayTimer = window.setTimeout(() => {
+      setResults(nextResults)
+    }, remainingTime)
+  }
+
+  void loadProducts()
+
+  return () => {
+    controller.abort()
+    window.clearTimeout(displayTimer)
+  }
+}, [requestUrl, retryCount])
 
   const currentResults = results?.requestUrl === requestUrl ? results : null
-  const products =
-    currentResults?.status === 'success' ? currentResults.products : []
+  const data = currentResults?.status === 'success' ? currentResults.data : null
+  const products = data?.products ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.ceil(total / pageSize)
+  const pageIsOutOfRange = data !== null && total > 0 && page > totalPages
 
-  const selectedCategory = categories.find((option) => option.slug === category)
   const categoryLabel =
-    selectedCategory?.name ?? (category.replace(/-/g, ' ') || 'All categories')
+    categories.find((option) => option.slug === category)?.name ??
+    (category.replace(/-/g, ' ') || 'All categories')
+
+  const categoryOptions = [
+    { value: '', label: 'All categories' },
+    ...categories.map(({ slug, name }) => ({ value: slug, label: name })),
+  ]
+
+  const priceLabel =
+    priceOptions.find((option) => option.value === priceSort)?.label ??
+    'Sort by price'
 
   let bannerMessage = 'Just browsing. That’s how it starts.'
 
@@ -230,8 +418,7 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
       categoryMessages[category] ?? 'A very specific kind of bad decision.'
   }
 
-  function updateCatalogParams(params: URLSearchParams) {
-    params.delete('page')
+  function navigateToParams(params: URLSearchParams) {
     const nextSearch = params.toString()
 
     void navigate({
@@ -254,7 +441,8 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
     }
 
     params.delete('q')
-    updateCatalogParams(params)
+    params.delete('page')
+    navigateToParams(params)
   }
 
   function selectPriceSort(value: string) {
@@ -268,11 +456,33 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
       params.delete('sort')
     }
 
-    updateCatalogParams(params)
+    params.delete('page')
+    navigateToParams(params)
+  }
+
+  function goToPage(nextPage: number) {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return
+
+    const params = new URLSearchParams(search)
+
+    if (nextPage === 1) {
+      params.delete('page')
+    } else {
+      params.set('page', String(nextPage))
+    }
+
+    navigateToParams(params)
+    catalogRef.current?.scrollIntoView({ block: 'start' })
+  }
+
+  function retryProducts() {
+    setResults(null)
+    setRetryCount((count) => count + 1)
   }
 
   return (
     <section
+      ref={catalogRef}
       id="catalog"
       className="scroll-mt-24 bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)] sm:px-10"
     >
@@ -289,92 +499,22 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
 
         <div className="mt-6 flex flex-wrap items-center gap-3 font-[var(--font-display)] text-sm">
           {(categories.length > 0 || category || query) && (
-            <details
-              ref={categoryDropdown}
-              className="relative w-fit max-w-full"
-              onToggle={(event) => {
-                if (event.currentTarget.open && priceDropdown.current) {
-                  priceDropdown.current.open = false
-                }
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape' && event.currentTarget.open) {
-                  event.preventDefault()
-                  closeDropdown(event.currentTarget)
-                }
-              }}
-            >
-              <summary
-                aria-label={`Filter by category. Selected: ${categoryLabel}`}
-                className="flex min-h-11 min-w-44 cursor-pointer list-none items-center justify-between gap-4 border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 [&::-webkit-details-marker]:hidden"
-              >
-                <span>{categoryLabel}</span>
-                <span aria-hidden="true">▾</span>
-              </summary>
-
-              <ul className="absolute left-0 top-full z-20 mt-1 max-h-64 min-w-full overflow-y-auto border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
-                {[{ slug: '', name: 'All categories' }, ...categories].map(
-                  ({ slug, name }) => (
-                    <li key={slug}>
-                      <button
-                        type="button"
-                        aria-pressed={!query && category === slug}
-                        onClick={() => {
-                          selectCategory(slug)
-                          closeDropdown(categoryDropdown.current)
-                        }}
-                        className="block min-h-11 w-full px-4 py-2 text-left [font:inherit] hover:bg-[var(--color-page)] aria-pressed:text-[var(--color-magenta)]"
-                      >
-                        {name}
-                      </button>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </details>
+            <FilterDropdown
+              label="Filter by category"
+              selectedLabel={categoryLabel}
+              value={query ? null : category}
+              options={categoryOptions}
+              onSelect={selectCategory}
+            />
           )}
 
-          <details
-            ref={priceDropdown}
-            className="relative w-fit max-w-full"
-            onToggle={(event) => {
-              if (event.currentTarget.open && categoryDropdown.current) {
-                categoryDropdown.current.open = false
-              }
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && event.currentTarget.open) {
-                event.preventDefault()
-                closeDropdown(event.currentTarget)
-              }
-            }}
-          >
-            <summary
-              aria-label={`Sort products by price. Selected: ${priceLabel}`}
-              className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 [&::-webkit-details-marker]:hidden"
-            >
-              <span>{priceLabel}</span>
-              <span aria-hidden="true">▾</span>
-            </summary>
-
-            <ul className="absolute left-0 top-full z-20 mt-1 min-w-full whitespace-nowrap border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
-              {priceOptions.map(({ value, label }) => (
-                <li key={value}>
-                  <button
-                    type="button"
-                    aria-pressed={priceSort === value}
-                    onClick={() => {
-                      selectPriceSort(value)
-                      closeDropdown(priceDropdown.current)
-                    }}
-                    className="block min-h-11 w-full px-4 py-2 text-left [font:inherit] hover:bg-[var(--color-page)] aria-pressed:text-[var(--color-magenta)]"
-                  >
-                    {label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </details>
+          <FilterDropdown
+            label="Sort products by price"
+            selectedLabel={priceLabel}
+            value={priceSort}
+            options={priceOptions}
+            onSelect={selectPriceSort}
+          />
 
           <div className="w-full md:ml-auto md:w-80">
             <label htmlFor="catalog-search" className="sr-only">
@@ -407,86 +547,118 @@ function ProductCatalog({ eyebrow, title, description }: ProductCatalogProps) {
           {bannerMessage}
         </p>
 
-        {!currentResults && (
-          <p role="status" className="mt-8 font-[var(--font-tech)] text-sm">
-            Loading questionable attachments...
-          </p>
-        )}
+        {!currentResults && <CatalogSkeleton />}
 
         {currentResults?.status === 'error' && (
-          <p role="alert" className="mt-8 font-[var(--font-tech)] text-sm">
-            The product feed glitched. Try again in a moment.
-          </p>
+          <div className="mt-8">
+            <p role="alert" className="font-[var(--font-tech)] text-sm">
+              The product feed glitched.
+            </p>
+
+            <button
+              type="button"
+              onClick={retryProducts}
+              className="mt-3 min-h-11 bg-[var(--color-blue)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
-        {currentResults?.status === 'success' && products.length === 0 && (
+        {pageIsOutOfRange && (
+          <div className="mt-8">
+            <p>This page is outside the current results.</p>
+
+            <button
+              type="button"
+              onClick={() => goToPage(1)}
+              className="min-h-11 font-semibold text-[var(--color-blue)] underline"
+            >
+              Back to page 1
+            </button>
+          </div>
+        )}
+
+        {data && total === 0 && (
           <p className="mt-8">
             {query ? `No products found for “${query}”.` : 'No attachments found.'}
           </p>
         )}
 
         {products.length > 0 && (
-          <ul className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => {
-              const quantityInCart =
-                items.find((item) => item.id === product.id)?.quantity ?? 0
+          <>
+            <p role="status" className="mt-6 text-sm">
+              Showing {skip + 1}–{skip + products.length} of {total}
+            </p>
 
-              const isAdded = quantityInCart > 0
-              const canAddMore = quantityInCart < product.stock
+            <ul className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product) => {
+                const quantityInCart =
+                  items.find((item) => item.id === product.id)?.quantity ?? 0
 
-              let buttonText = '+ Add to Cart'
+                const isAdded = quantityInCart > 0
+                const canAddMore = quantityInCart < product.stock
 
-              if (isAdded) {
-                buttonText = canAddMore ? 'Added to Cart · +1' : 'Added to Cart'
-              } else if (!canAddMore) {
-                buttonText = 'Out of stock'
-              }
+                let buttonText = '+ Add to Cart'
 
-              return (
-                <li key={product.id} className="group relative">
-                  <Link
-                    to={`/products/${product.id}`}
-                    className="block h-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
-                  >
-                    <article className="h-full bg-[var(--color-surface)] p-4 transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02]">
-                      <img
-                        src={product.thumbnail}
-                        alt={product.title}
-                        className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
-                      />
+                if (isAdded) {
+                  buttonText = canAddMore ? 'Added to Cart · +1' : 'Added to Cart'
+                } else if (!canAddMore) {
+                  buttonText = 'Out of stock'
+                }
 
-                      <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
-                        {product.category}
-                      </p>
+                return (
+                  <li key={product.id} className="group relative">
+                    <Link
+                      to={`/products/${product.id}`}
+                      className="block h-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+                    >
+                      <article className="h-full bg-[var(--color-surface)] p-4 transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02]">
+                        <img
+                          src={product.thumbnail}
+                          alt={product.title}
+                          className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
+                        />
 
-                      <h3 className="mt-2 font-semibold">{product.title}</h3>
+                        <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
+                          {product.category}
+                        </p>
 
-                      <p className="mt-2 text-sm font-bold">
-                        ${product.price.toFixed(2)}
-                      </p>
-                    </article>
-                  </Link>
+                        <h3 className="mt-2 font-semibold">{product.title}</h3>
 
-                  <button
-                    type="button"
-                    disabled={!canAddMore}
-                    onClick={() => addToCart(product, 1)}
-                    className={`absolute right-6 top-6 z-10 px-3 py-2 text-sm font-semibold text-white transition-colors enabled:hover:brightness-110 disabled:cursor-default ${
-                      isAdded
-                        ? 'bg-[var(--color-magenta)]'
-                        : 'bg-[var(--color-blue)] [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100'
-                    }`}
-                  >
-                    {buttonText}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+                        <p className="mt-2 text-sm font-bold">
+                          ${product.price.toFixed(2)}
+                        </p>
+                      </article>
+                    </Link>
+
+                    <button
+                      type="button"
+                      disabled={!canAddMore}
+                      onClick={() => addToCart(product, 1)}
+                      className={`absolute right-6 top-6 z-10 px-3 py-2 text-sm font-semibold text-white transition-colors enabled:hover:brightness-110 disabled:cursor-default ${
+                        isAdded
+                          ? 'bg-[var(--color-magenta)]'
+                          : 'bg-[var(--color-blue)] [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100'
+                      }`}
+                    >
+                      {buttonText}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </>
+        )}
+
+        {totalPages > 1 && !pageIsOutOfRange && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
         )}
       </div>
     </section>
   )
 }
-
-export default ProductCatalog
