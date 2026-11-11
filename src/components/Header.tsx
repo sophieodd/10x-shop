@@ -30,21 +30,77 @@ function Header({ cartCount }: HeaderProps) {
               <a href="#catalog" className="text-[var(--color-ink)]">
                 Catalog
               </a>
-              <a href="#account" className="text-[var(--color-ink)]">
-                Account
-              </a>
             </nav>
 
-            <a
-              href="#cart"
-              aria-label={`Bag, ${cartCount} items`}
-              className="flex items-center gap-2 text-sm text-[var(--color-ink)]"
-            >
-              Bag
-              <span className="min-w-5 rounded-sm bg-[var(--color-blue)] px-1.5 py-1 text-center text-[10px] font-bold leading-none text-white">
-                {cartCount}
-              </span>
-            </a>
+            <div className="flex items-center gap-5">
+              <button
+                type="button"
+                aria-label="Search products"
+                title="Search will work when we add the catalog"
+                className="text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <circle cx="10.8" cy="10.8" r="6.3" />
+                  <path d="m16 16 4.5 4.5" />
+                </svg>
+              </button>
+
+              <a
+                href="#account"
+                aria-label="Account"
+                className="text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <circle cx="12" cy="8" r="3.2" />
+                  <path d="M5 20c.4-3.5 3-5.5 7-5.5s6.6 2 7 5.5" />
+                </svg>
+              </a>
+
+              <a
+                href="#cart"
+                aria-label={`Cart, ${cartCount} items`}
+                className="relative text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="M5 8h14l1 13H4L5 8Z" />
+                  <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                </svg>
+
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--color-blue)] px-1 text-[9px] font-bold leading-none text-white"
+                >
+                  {cartCount}
+                </span>
+              </a>
+            </div>
           </div>
         </div>
       </header>
