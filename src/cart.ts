@@ -18,6 +18,8 @@ type CartContextValue = {
   setQuantity: (id: number, quantity: number) => void
   removeItem: (id: number) => void
   clearCart: () => void
+  promoCode: '10X10' | null
+  setPromoCode: (code: '10X10' | null) => void
 }
 
 export const CartContext = createContext<CartContextValue | null>(null)

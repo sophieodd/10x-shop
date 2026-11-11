@@ -1,9 +1,13 @@
 import { Link } from 'react-router'
+import AccountMenu from './AccountMenu'
 import MiniCart from './MiniCart'
 
 type HeaderProps = {
   cartCount: number
 }
+
+const controlClassName =
+  'text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]'
 
 function Header({ cartCount }: HeaderProps) {
   return (
@@ -30,6 +34,7 @@ function Header({ cartCount }: HeaderProps) {
               <Link to="/" className="font-semibold text-[var(--color-magenta)]">
                 Shop
               </Link>
+
               <Link to="/#catalog" className="text-[var(--color-ink)]">
                 Catalog
               </Link>
@@ -40,7 +45,7 @@ function Header({ cartCount }: HeaderProps) {
                 type="button"
                 aria-label="Search products"
                 title="Search will work when we add the catalog"
-                className="text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+                className={controlClassName}
               >
                 <svg
                   aria-hidden="true"
@@ -57,31 +62,13 @@ function Header({ cartCount }: HeaderProps) {
                 </svg>
               </button>
 
-              <a
-                href="#account"
-                aria-label="Account"
-                className="text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
-              >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <circle cx="12" cy="8" r="3.2" />
-                  <path d="M5 20c.4-3.5 3.1-5.5 7-5.5s6.6 2 7 5.5" />
-                </svg>
-              </a>
+              <AccountMenu />
 
               <div className="group relative">
                 <Link
                   to="/cart"
                   aria-label={`Cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
-                  className="relative block text-[var(--color-ink)] hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+                  className={`relative block ${controlClassName}`}
                 >
                   <svg
                     aria-hidden="true"
