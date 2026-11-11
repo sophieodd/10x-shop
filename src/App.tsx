@@ -6,6 +6,9 @@ import Header from './components/Header'
 import Hero from './components/Hero'
 import ProductCatalog from './components/ProductCatalog'
 import ProductDetails from './components/ProductDetails'
+import AuthProvider from './AuthProvider'
+import LoginPage from './components/LoginPage'
+import CheckoutPage from './components/CheckoutPage'
 
 function HomePage() {
   return (
@@ -32,6 +35,8 @@ function ShopLayout() {
         <Route path="/" element={<HomePage />} />
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route
           path="*"
           element={
@@ -47,8 +52,10 @@ function ShopLayout() {
 
 export default function App() {
   return (
-    <CartProvider>
-      <ShopLayout />
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <ShopLayout />
+      </CartProvider>
+    </AuthProvider>
   )
 }

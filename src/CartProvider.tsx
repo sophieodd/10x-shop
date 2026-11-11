@@ -2,16 +2,35 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { CartContext, type CartItem, type CartProduct } from './cart'
 
 const CART_STORAGE_KEY = 'ctrl-me-cart'
+const PROMO_STORAGE_KEY = 'ctrl-me-promo'
 
-function loadCartItems(): CartItem[] {
+type PromoCode = '10X10' | null
+
+type CartState = {
+  items: CartItem[]
+  promoCode: PromoCode
+  toast: { count: number } | null
+}
+
+type CartProviderProps = {
+  children: ReactNode
+}
+
+function loadCart(): CartState {
   try {
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
-    if (!savedCart) return []
+    const parsedItems: unknown = savedCart ? JSON.parse(savedCart) : []
+    const items = Array.isArray(parsedItems) ? (parsedItems as CartItem[]) : []
 
-    const items = JSON.parse(savedCart) as CartItem[]
-    return Array.isArray(items) ? items : []
+    const promoCode =
+      items.length > 0 &&
+      window.localStorage.getItem(PROMO_STORAGE_KEY) === '10X10'
+        ? '10X10'
+        : null
+
+    return { items, promoCode, toast: null }
   } catch {
-    return []
+    return { items: [], promoCode: null, toast: null }
   }
 }
 
@@ -24,28 +43,23 @@ function getCartMessage(count: number): string {
   return 'Okay stopppppppp - maybe ice cream and therapy?'
 }
 
-type CartProviderProps = {
-  children: ReactNode
-}
-
 export default function CartProvider({ children }: CartProviderProps) {
-  const [cart, setCart] = useState<{
-    items: CartItem[]
-    toast: { count: number } | null
-  }>(() => ({
-    items: loadCartItems(),
-    toast: null,
-  }))
-
-  const { items, toast } = cart
+  const [cart, setCart] = useState<CartState>(loadCart)
+  const { items, promoCode, toast } = cart
 
   useEffect(() => {
     try {
       window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
+
+      if (promoCode) {
+        window.localStorage.setItem(PROMO_STORAGE_KEY, promoCode)
+      } else {
+        window.localStorage.removeItem(PROMO_STORAGE_KEY)
+      }
     } catch {
-      // Keep the cart available in memory if browser storage is unavailable.
+      // The cart still works in memory if browser storage is unavailable.
     }
-  }, [items])
+  }, [items, promoCode])
 
   useEffect(() => {
     if (!toast) return
@@ -80,7 +94,7 @@ export default function CartProvider({ children }: CartProviderProps) {
 
       const count = nextItems.reduce((total, item) => total + item.quantity, 0)
 
-      return { items: nextItems, toast: { count } }
+      return { ...current, items: nextItems, toast: { count } }
     })
   }
 
@@ -98,19 +112,39 @@ export default function CartProvider({ children }: CartProviderProps) {
   }
 
   function removeItem(id: number) {
-    setCart((current) => ({
-      ...current,
-      items: current.items.filter((item) => item.id !== id),
-    }))
+    setCart((current) => {
+      const nextItems = current.items.filter((item) => item.id !== id)
+
+      if (nextItems.length === 0) {
+        return { items: [], promoCode: null, toast: null }
+      }
+
+      return { ...current, items: nextItems, toast: null }
+    })
   }
 
   function clearCart() {
-    setCart({ items: [], toast: null })
+    setCart({ items: [], promoCode: null, toast: null })
+  }
+
+  function setPromoCode(code: PromoCode) {
+    setCart((current) => ({
+      ...current,
+      promoCode: current.items.length > 0 ? code : null,
+    }))
   }
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, setQuantity, removeItem, clearCart }}
+      value={{
+        items,
+        addToCart,
+        setQuantity,
+        removeItem,
+        clearCart,
+        promoCode,
+        setPromoCode,
+      }}
     >
       {children}
 
