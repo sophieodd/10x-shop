@@ -42,13 +42,21 @@ type FilterOption = {
   label: string
 }
 
+type SortOption = FilterOption & {
+  sortBy?: 'price' | 'rating' | 'title'
+  order?: 'asc' | 'desc'
+}
+
 const productsEndpoint = 'https://dummyjson.com/products'
 const pageSize = 12
+const defaultSort: SortOption = { value: '', label: 'Default sort' }
 
-const priceOptions: FilterOption[] = [
-  { value: '', label: 'Sort by price' },
-  { value: 'price-asc', label: 'Price: low to high' },
-  { value: 'price-desc', label: 'Price: high to low' },
+const sortOptions: SortOption[] = [
+  defaultSort,
+  { value: 'price-asc', label: 'Price: low to high', sortBy: 'price', order: 'asc' },
+  { value: 'price-desc', label: 'Price: high to low', sortBy: 'price', order: 'desc' },
+  { value: 'rating-desc', label: 'Rating: high to low', sortBy: 'rating', order: 'desc' },
+  { value: 'title-asc', label: 'Name: A–Z', sortBy: 'title', order: 'asc' },
 ]
 
 const categoryMessages: Record<string, string> = {
@@ -114,7 +122,6 @@ function FilterDropdown({
     }
 
     document.addEventListener('pointerdown', handleOutsidePointerDown, true)
-
     return () => {
       document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
     }
@@ -172,10 +179,7 @@ function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
     'min-h-11 min-w-11 border border-[var(--color-border)] px-3 text-sm focus-visible:outline-2 focus-visible:outline-[var(--color-blue)]'
 
   return (
-    <nav
-      aria-label="Catalog pages"
-      className="mt-8 flex flex-wrap items-center gap-2"
-    >
+    <nav aria-label="Catalog pages" className="mt-8 flex flex-wrap items-center gap-2">
       <button
         type="button"
         disabled={page <= 1}
@@ -219,7 +223,10 @@ function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
 function CatalogSkeleton() {
   return (
     <>
-      <p role="status" className="mt-8 font-[var(--font-tech)] text-sm">
+      <p
+        role="status"
+        className="mt-8 font-[var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
+      >
         Loading questionable attachments...
       </p>
 
@@ -228,14 +235,11 @@ function CatalogSkeleton() {
         className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
       >
         {Array.from({ length: pageSize }, (_, index) => (
-          <div
-            key={index}
-            className="bg-[var(--color-surface)] p-4 motion-safe:animate-pulse"
-          >
-            <div className="aspect-square bg-[var(--color-lavender)]/40" />
-            <div className="mt-4 h-3 w-1/3 bg-[var(--color-lavender)]/40" />
-            <div className="mt-2 h-4 w-2/3 bg-[var(--color-lavender)]/40" />
-            <div className="mt-2 h-4 w-1/5 bg-[var(--color-lavender)]/40" />
+          <div key={index} className="bg-[var(--color-surface)] p-4">
+            <div className="aspect-square bg-[var(--color-lavender)]" />
+            <div className="mt-4 h-3 w-1/3 bg-[var(--color-blue)]/40" />
+            <div className="mt-2 h-4 w-2/3 bg-[var(--color-lavender)]" />
+            <div className="mt-2 h-4 w-1/5 bg-[var(--color-lavender)]" />
           </div>
         ))}
       </div>
@@ -256,8 +260,9 @@ export default function ProductCatalog({
 
   const query = searchParams.get('q')?.trim() ?? ''
   const category = query ? '' : (searchParams.get('category') ?? '')
-  const sort = searchParams.get('sort')
-  const priceSort = sort === 'price-asc' || sort === 'price-desc' ? sort : ''
+  const sort = searchParams.get('sort') ?? ''
+  const selectedSort =
+    sortOptions.find((option) => option.value === sort) ?? defaultSort
 
   const requestedPage = Number(searchParams.get('page') ?? '1')
   const page =
@@ -266,8 +271,8 @@ export default function ProductCatalog({
     Number.isSafeInteger((requestedPage - 1) * pageSize)
       ? requestedPage
       : 1
-
   const skip = (page - 1) * pageSize
+
   const [searchDraft, setSearchDraft] = useState<SearchDraft | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [categoryError, setCategoryError] = useState(false)
@@ -311,7 +316,6 @@ export default function ProductCatalog({
         const response = await fetch(`${productsEndpoint}/categories`, {
           signal: controller.signal,
         })
-
         if (!response.ok) throw new Error('Could not load categories')
 
         const data: Category[] = await response.json()
@@ -338,56 +342,52 @@ export default function ProductCatalog({
     endpoint += `/category/${encodeURIComponent(category)}`
   }
 
-  if (priceSort) {
-    requestParams.set('sortBy', 'price')
-    requestParams.set('order', priceSort === 'price-asc' ? 'asc' : 'desc')
+  if (selectedSort.sortBy && selectedSort.order) {
+    requestParams.set('sortBy', selectedSort.sortBy)
+    requestParams.set('order', selectedSort.order)
   }
 
   const requestUrl = `${endpoint}?${requestParams.toString()}`
 
   useEffect(() => {
-  const controller = new AbortController()
-  const startedAt = performance.now()
-  const minimumLoadingTime = 500
-  let displayTimer: number | undefined
+    const controller = new AbortController()
+    const startedAt = performance.now()
+    let displayTimer: number | undefined
 
-  async function loadProducts() {
-    let nextResults: ProductResults
+    async function loadProducts() {
+      let nextResults: ProductResults
 
-    try {
-      const response = await fetch(requestUrl, {
-        signal: controller.signal,
-      })
+      try {
+        const response = await fetch(requestUrl, { signal: controller.signal })
+        if (!response.ok) throw new Error('Could not load products')
 
-      if (!response.ok) throw new Error('Could not load products')
+        const data: ProductsResponse = await response.json()
+        nextResults = { requestUrl, status: 'success', data }
+      } catch {
+        nextResults = { requestUrl, status: 'error' }
+      }
 
-      const data: ProductsResponse = await response.json()
-      nextResults = { requestUrl, status: 'success', data }
-    } catch {
-      nextResults = { requestUrl, status: 'error' }
+      if (controller.signal.aborted) return
+
+      const remainingTime = 500 - (performance.now() - startedAt)
+
+      if (remainingTime <= 0) {
+        setResults(nextResults)
+        return
+      }
+
+      displayTimer = window.setTimeout(() => {
+        setResults(nextResults)
+      }, remainingTime)
     }
 
-    if (controller.signal.aborted) return
+    void loadProducts()
 
-    const remainingTime = minimumLoadingTime - (performance.now() - startedAt)
-
-    if (remainingTime <= 0) {
-      setResults(nextResults)
-      return
+    return () => {
+      controller.abort()
+      window.clearTimeout(displayTimer)
     }
-
-    displayTimer = window.setTimeout(() => {
-      setResults(nextResults)
-    }, remainingTime)
-  }
-
-  void loadProducts()
-
-  return () => {
-    controller.abort()
-    window.clearTimeout(displayTimer)
-  }
-}, [requestUrl, retryCount])
+  }, [requestUrl, retryCount])
 
   const currentResults = results?.requestUrl === requestUrl ? results : null
   const data = currentResults?.status === 'success' ? currentResults.data : null
@@ -405,10 +405,6 @@ export default function ProductCatalog({
     ...categories.map(({ slug, name }) => ({ value: slug, label: name })),
   ]
 
-  const priceLabel =
-    priceOptions.find((option) => option.value === priceSort)?.label ??
-    'Sort by price'
-
   let bannerMessage = 'Just browsing. That’s how it starts.'
 
   if (query) {
@@ -420,7 +416,6 @@ export default function ProductCatalog({
 
   function navigateToParams(params: URLSearchParams) {
     const nextSearch = params.toString()
-
     void navigate({
       pathname,
       search: nextSearch ? `?${nextSearch}` : '',
@@ -445,8 +440,8 @@ export default function ProductCatalog({
     navigateToParams(params)
   }
 
-  function selectPriceSort(value: string) {
-    if (value === priceSort) return
+  function selectSort(value: string) {
+    if (value === selectedSort.value) return
 
     const params = new URLSearchParams(search)
 
@@ -509,18 +504,17 @@ export default function ProductCatalog({
           )}
 
           <FilterDropdown
-            label="Sort products by price"
-            selectedLabel={priceLabel}
-            value={priceSort}
-            options={priceOptions}
-            onSelect={selectPriceSort}
+            label="Sort products"
+            selectedLabel={selectedSort.label}
+            value={selectedSort.value}
+            options={sortOptions}
+            onSelect={selectSort}
           />
 
           <div className="w-full md:ml-auto md:w-80">
             <label htmlFor="catalog-search" className="sr-only">
               Search products
             </label>
-
             <input
               id="catalog-search"
               type="search"
@@ -554,7 +548,6 @@ export default function ProductCatalog({
             <p role="alert" className="font-[var(--font-tech)] text-sm">
               The product feed glitched.
             </p>
-
             <button
               type="button"
               onClick={retryProducts}
@@ -568,7 +561,6 @@ export default function ProductCatalog({
         {pageIsOutOfRange && (
           <div className="mt-8">
             <p>This page is outside the current results.</p>
-
             <button
               type="button"
               onClick={() => goToPage(1)}
@@ -598,7 +590,6 @@ export default function ProductCatalog({
 
                 const isAdded = quantityInCart > 0
                 const canAddMore = quantityInCart < product.stock
-
                 let buttonText = '+ Add to Cart'
 
                 if (isAdded) {
@@ -611,6 +602,7 @@ export default function ProductCatalog({
                   <li key={product.id} className="group relative">
                     <Link
                       to={`/products/${product.id}`}
+                      state={{ catalogSearch: search }}
                       className="block h-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
                     >
                       <article className="h-full bg-[var(--color-surface)] p-4 transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02]">
@@ -623,9 +615,7 @@ export default function ProductCatalog({
                         <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
                           {product.category}
                         </p>
-
                         <h3 className="mt-2 font-semibold">{product.title}</h3>
-
                         <p className="mt-2 text-sm font-bold">
                           ${product.price.toFixed(2)}
                         </p>

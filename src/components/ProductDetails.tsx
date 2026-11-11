@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { useCart } from '../cart'
+
+type ProductReview = {
+  rating: number
+  comment: string
+  date: string
+  reviewerName: string
+}
 
 type ProductDetailsData = {
   id: number
@@ -11,6 +18,7 @@ type ProductDetailsData = {
   stock: number
   thumbnail: string
   images: string[]
+  reviews?: ProductReview[]
 }
 
 type ProductResult =
@@ -18,6 +26,20 @@ type ProductResult =
   | { status: 'error'; message: string }
 
 const minimumLoadingTime = 500
+
+function useCatalogReturnLink() {
+  const { state } = useLocation()
+  const catalogSearch: unknown = state?.catalogSearch
+
+  return {
+    pathname: '/',
+    search:
+      typeof catalogSearch === 'string' && catalogSearch.startsWith('?')
+        ? catalogSearch
+        : '',
+    hash: '#catalog',
+  }
+}
 
 function ProductSkeleton() {
   return (
@@ -47,12 +69,14 @@ function ProductSkeleton() {
 }
 
 function ProductError({ message }: { message: string }) {
+  const catalogReturnLink = useCatalogReturnLink()
+
   return (
     <main className="min-h-screen bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)]">
       <p role="alert">{message}</p>
 
       <Link
-        to="/#catalog"
+        to={catalogReturnLink}
         className="mt-6 inline-block font-semibold text-[var(--color-blue)]"
       >
         ← Back to the catalog
@@ -61,10 +85,57 @@ function ProductError({ message }: { message: string }) {
   )
 }
 
+function CustomerReviews({ reviews }: { reviews: ProductReview[] }) {
+  return (
+    <section
+      aria-labelledby="product-reviews-title"
+      className="mt-12 border-t border-[var(--color-border)] pt-8"
+    >
+      <h2
+        id="product-reviews-title"
+        className="font-[var(--font-display)] text-3xl font-bold"
+      >
+        Customer reviews <span className="text-lg">({reviews.length})</span>
+      </h2>
+
+      {reviews.length === 0 ? (
+        <p className="mt-4">No reviews yet.</p>
+      ) : (
+        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {reviews.map((review, index) => (
+            <li
+              key={`${review.reviewerName}-${review.date}-${index}`}
+              className="bg-[var(--color-surface)] p-5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold">{review.reviewerName}</p>
+                <p className="text-sm font-semibold text-[var(--color-magenta)]">
+                  <span aria-hidden="true">★ </span>
+                  {review.rating} out of 5
+                </p>
+              </div>
+
+              <p className="mt-2 text-sm text-[var(--color-ink)]/70">
+                <time dateTime={review.date}>
+                  {new Date(review.date).toLocaleDateString()}
+                </time>
+              </p>
+
+              <p className="mt-3">{review.comment}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 function ProductDetailsContent({ id }: { id: number }) {
+  const catalogReturnLink = useCatalogReturnLink()
   const { items, addToCart } = useCart()
   const [result, setResult] = useState<ProductResult | null>(null)
   const [quantity, setQuantity] = useState(1)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -124,6 +195,7 @@ function ProductDetailsContent({ id }: { id: number }) {
   }
 
   const { product } = result
+  const images = product.images.length > 0 ? product.images : [product.thumbnail]
   const quantityInCart =
     items.find((item) => item.id === product.id)?.quantity ?? 0
   const remainingStock = Math.max(0, product.stock - quantityInCart)
@@ -132,7 +204,7 @@ function ProductDetailsContent({ id }: { id: number }) {
     <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)] sm:px-10">
       <div className="mx-auto max-w-7xl">
         <Link
-          to="/#catalog"
+          to={catalogReturnLink}
           className="font-[var(--font-tech)] text-sm text-[var(--color-blue)]"
         >
           ← Back to the catalog
@@ -141,10 +213,32 @@ function ProductDetailsContent({ id }: { id: number }) {
         <div className="mt-8 grid items-start gap-10 md:grid-cols-2">
           <div className="bg-[var(--color-surface)] p-6">
             <img
-              src={product.images[0] ?? product.thumbnail}
-              alt={product.title}
+              src={images[selectedImageIndex] ?? product.thumbnail}
+              alt={`${product.title}, view ${selectedImageIndex + 1}`}
               className="aspect-square w-full object-contain"
             />
+
+            {images.length > 1 && (
+              <ul aria-label="Product photos" className="mt-4 flex flex-wrap gap-2">
+                {images.map((image, index) => (
+                  <li key={`${image}-${index}`}>
+                    <button
+                      type="button"
+                      aria-label={`Show photo ${index + 1} of ${product.title}`}
+                      aria-pressed={selectedImageIndex === index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className="block h-16 w-16 border border-[var(--color-border)] p-1 aria-pressed:border-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)]"
+                    >
+                      <img
+                        src={image}
+                        alt=""
+                        className="h-full w-full object-contain"
+                      />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>
@@ -218,6 +312,8 @@ function ProductDetailsContent({ id }: { id: number }) {
             )}
           </div>
         </div>
+
+        <CustomerReviews reviews={product.reviews ?? []} />
       </div>
     </main>
   )
@@ -227,7 +323,12 @@ export default function ProductDetails() {
   const { id } = useParams()
   const productId = Number(id)
 
-  if (!id || !/^\d+$/.test(id) || !Number.isSafeInteger(productId) || productId < 1) {
+  if (
+    !id ||
+    !/^\d+$/.test(id) ||
+    !Number.isSafeInteger(productId) ||
+    productId < 1
+  ) {
     return <ProductError message="This product does not have a valid ID." />
   }
 
