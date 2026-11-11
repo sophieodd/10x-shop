@@ -12,16 +12,21 @@ export type CartItem = CartProduct & {
   quantity: number
 }
 
-export const CartContext = createContext<{
+type CartContextValue = {
   items: CartItem[]
   addToCart: (product: CartProduct, quantity: number) => void
-} | null>(null)
+  setQuantity: (id: number, quantity: number) => void
+  removeItem: (id: number) => void
+  clearCart: () => void
+}
+
+export const CartContext = createContext<CartContextValue | null>(null)
 
 export function useCart() {
   const cart = useContext(CartContext)
 
   if (!cart) {
-    throw new Error('useCart must be used inside CartContext.Provider')
+    throw new Error('useCart must be used inside CartProvider')
   }
 
   return cart
