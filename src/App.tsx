@@ -1,122 +1,137 @@
+import { useEffect, useState } from 'react'
+import { Route, Routes } from 'react-router'
+import { CartContext, type CartItem, type CartProduct } from './cart'
 import Header from './components/Header'
+import Hero from './components/Hero'
+import ProductCatalog from './components/ProductCatalog'
+import ProductDetails from './components/ProductDetails'
 
-function App() {
+const CART_STORAGE_KEY = 'ctrl-me-cart'
+
+function loadCartItems(): CartItem[] {
+  try {
+    const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
+    if (!savedCart) return []
+
+    const items = JSON.parse(savedCart) as CartItem[]
+    return Array.isArray(items) ? items : []
+  } catch {
+    return []
+  }
+}
+
+function getCartMessage(count: number): string {
+  if (count === 1) return 'A reasonable decision.'
+  if (count === 2) return 'Interesting development.'
+  if (count === 3) return 'Are you okay?'
+  if (count === 4) return 'WE NEED TO TALK..'
+  if (count <= 5) return 'Your bank has contacted us'
+  return 'Okay stopppppppp - maybe ice cream and therapy?'
+}
+
+function HomePage() {
   return (
-    <>
-      <Header cartCount={0} />
-
-      <main id="shop">
-        <section className="relative overflow-hidden bg-[var(--color-ink)] px-6 py-16 text-white sm:px-10 lg:min-h-[540px] lg:py-20">
-          <p className="absolute bottom-8 left-6 hidden rotate-180 font-[var(--font-tech)] text-[9px] uppercase tracking-widest text-white/40 [writing-mode:vertical-rl] lg:block">
-            Independent state of mind — est. 1991
-          </p>
-
-          <div className="mx-auto grid max-w-7xl items-center gap-14 md:grid-cols-2">
-            <div>
-              <p className="flex items-center gap-3 font-[var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em]">
-                <span className="h-2 w-2 rounded-full bg-[var(--color-magenta)]" />
-                Your settings. Your rules.
-              </p>
-
-              <h1 className="mt-8 font-[var(--font-display)] text-6xl font-light leading-[0.85] tracking-[-0.07em] sm:text-7xl lg:text-[6.7rem]">
-                YOU CAN'T
-                <br />
-                <span className="font-medium text-[var(--color-magenta)]">
-                  CTRL
-                </span>{' '}
-                ME.
-              </h1>
-
-              <p className="mt-8 leading-relaxed text-white/75">
-                Objects for the beautifully unfiltered.
-                <br />
-                Find your own frequency.
-              </p>
-
-              <a
-                href="#catalog"
-                className="mt-7 inline-flex items-center gap-8 bg-[var(--color-blue)] px-5 py-4 font-[var(--font-tech)] text-sm font-bold text-white hover:brightness-110 focus:outline-2 focus:outline-offset-4 focus:outline-[var(--color-lavender)]"
-              >
-                Explore the drop <span aria-hidden="true">↓</span>
-              </a>
-            </div>
-
-            <div className="relative mx-auto w-full max-w-lg">
-              <p className="absolute -right-20 top-0 hidden font-[var(--font-tech)] text-[10px] font-bold leading-tight text-[var(--color-blue)] lg:block">
-                CTRL
-                <br />
-                YOUR
-                <br />
-                REALITY
-              </p>
-
-              <div className="relative mt-4">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 translate-x-2 translate-y-2 bg-[var(--color-magenta)]"
-                />
-
-                <div className="relative -rotate-2 border border-[var(--color-blue)] bg-[var(--color-ink)]">
-                  <div className="flex items-center justify-between border-b border-[var(--color-blue)] px-4 py-3 font-[var(--font-tech)] text-xs text-white/70">
-                    <span>CTRL_ME.exe</span>
-                    <span className="text-lg text-[var(--color-blue)]">×</span>
-                  </div>
-
-                  <div className="relative grid min-h-64 place-items-center">
-                    <span className="absolute left-5 top-4 text-2xl text-[var(--color-lavender)]">
-                      ✳
-                    </span>
-                    <span className="absolute right-5 top-4 text-2xl text-[var(--color-blue)]">
-                      +
-                    </span>
-
-                    <h2 className="font-[var(--font-display)] text-center text-5xl font-black leading-[0.9] tracking-tight text-[var(--color-magenta)] sm:text-6xl">
-                      DON'T
-                      <br />
-                      BLEND
-                      <br />
-                      IN<span className="text-[var(--color-blue)]">_</span>
-                    </h2>
-                  </div>
-
-                  <div className="border-t border-[var(--color-blue)] px-4 py-2 font-[var(--font-tech)] text-[9px] uppercase tracking-wider text-white/60">
-                    SYS.001 / NO PERMISSION REQUIRED
-                  </div>
-                </div>
-              </div>
-
-              <a
-                href="https://maps.app.goo.gl/uQm5kMGApayCddvv7"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="View this Batumi Beach location on Google Maps"
-                className="mt-4 block text-right font-[var(--font-tech)] text-[9px] leading-relaxed text-white/40 hover:text-[var(--color-blue)]"
-              >
-                41°39′24″ N
-                <br />
-                41°38′21″ E
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="catalog"
-          className="bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)] sm:px-10"
-        >
-          <div className="mx-auto max-w-7xl">
-            <p className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em]">
-              The starting point{' '}
-              <span className="text-[var(--color-magenta)]">✳</span>
-            </p>
-            <h2 className="mt-5 text-4xl font-medium tracking-tight sm:text-5xl">
-              Made to stand out.
-            </h2>
-          </div>
-        </section>
-      </main>
-    </>
+    <main id="shop">
+      <Hero />
+      <ProductCatalog
+        eyebrow="ERROR 404: COMMITMENT NOT FOUND"
+        title="For the ones with commitment issues."
+        description="Couches, gadgets and other temporary attachments."
+      />
+    </main>
   )
 }
 
-export default App
+export default function App() {
+  const [cart, setCart] = useState<{
+    items: CartItem[]
+    toast: { count: number } | null
+  }>(() => ({
+    items: loadCartItems(),
+    toast: null,
+  }))
+
+  const { items, toast } = cart
+  const cartCount = items.reduce((total, item) => total + item.quantity, 0)
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
+    } catch {
+      // The cart still works for this visit if browser storage is unavailable.
+    }
+  }, [items])
+
+  useEffect(() => {
+    if (!toast) return
+
+    const timer = window.setTimeout(() => {
+      setCart((current) =>
+        current.toast === toast ? { ...current, toast: null } : current,
+      )
+    }, 3500)
+
+    return () => window.clearTimeout(timer)
+  }, [toast])
+
+  function addToCart(product: CartProduct, quantity: number) {
+    if (!Number.isInteger(quantity) || quantity < 1 || product.stock < 1) {
+      return
+    }
+
+    setCart((current) => {
+      const existing = current.items.find((item) => item.id === product.id)
+      const previousQuantity = existing?.quantity ?? 0
+      const nextQuantity = Math.min(previousQuantity + quantity, product.stock)
+
+      if (nextQuantity <= previousQuantity) return current
+
+      const updatedItem = { ...product, quantity: nextQuantity }
+      const nextItems = existing
+        ? current.items.map((item) =>
+            item.id === product.id ? updatedItem : item,
+          )
+        : [...current.items, updatedItem]
+
+      const count = nextItems.reduce((total, item) => total + item.quantity, 0)
+
+      return { items: nextItems, toast: { count } }
+    })
+  }
+
+  return (
+    <CartContext.Provider value={{ items, addToCart }}>
+      <Header cartCount={cartCount} />
+
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
+        <Route
+          path="*"
+          element={
+            <main className="min-h-screen bg-[var(--color-page)] px-6 py-16">
+              <h1 className="text-3xl font-bold">404: Page not found.</h1>
+            </main>
+          }
+        />
+      </Routes>
+
+      <div
+        role="status"
+        aria-atomic="true"
+        className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-end"
+      >
+        {toast && (
+          <div className="max-w-full bg-[var(--color-magenta)] px-5 py-3 text-white shadow-lg">
+            <p className="font-[var(--font-tech)] text-xs uppercase">
+              Added to cart · {toast.count} {toast.count === 1 ? 'item' : 'items'}
+            </p>
+            <p className="mt-1 font-[var(--font-display)] text-lg font-bold">
+              {getCartMessage(toast.count)}
+            </p>
+          </div>
+        )}
+      </div>
+    </CartContext.Provider>
+  )
+}
