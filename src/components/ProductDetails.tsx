@@ -3,6 +3,8 @@ import { Link, useLocation, useParams } from 'react-router'
 import { useCart } from '../cart'
 import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
 import NotFoundPage from './NotFoundPage'
+import ProductGrid from './ProductGrid'
+import type { CatalogProduct } from './ProductCard'
 
 type ProductReview = {
   rating: number
@@ -150,6 +152,63 @@ function CustomerReviews({ reviews }: { reviews: ProductReview[] }) {
           ))}
         </ul>
       )}
+    </section>
+  )
+}
+function RelatedProducts({
+  productId,
+  category,
+  catalogSearch,
+}: {
+  productId: number
+  category: string
+  catalogSearch: string
+}) {
+  const [products, setProducts] = useState<CatalogProduct[]>([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadRelatedProducts() {
+      try {
+        const response = await fetch(
+          `https://dummyjson.com/products/category/${encodeURIComponent(category)}?limit=5`,
+          { signal: controller.signal },
+        )
+
+        if (!response.ok) return
+
+        const data: { products: CatalogProduct[] } = await response.json()
+
+        if (!controller.signal.aborted) {
+          setProducts(
+            data.products
+              .filter((product) => product.id !== productId)
+              .slice(0, 4),
+          )
+        }
+      } catch {
+        // The product details stay available if recommendations fail.
+      }
+    }
+
+    void loadRelatedProducts()
+
+    return () => controller.abort()
+  }, [category, productId])
+
+  if (products.length === 0) return null
+
+  return (
+    <section aria-labelledby="related-products-title" className="mt-12">
+      <h2
+        id="related-products-title"
+        className="font-[var(--font-display)] text-3xl font-bold"
+      >
+        Related products
+      </h2>
+
+      <ProductGrid products={products} catalogSearch={catalogSearch} />
     </section>
   )
 }
@@ -368,6 +427,12 @@ function ProductDetailsContent({ id }: { id: number }) {
         </div>
 
         <CustomerReviews reviews={product.reviews ?? []} />
+        <RelatedProducts
+          key={product.id}
+          productId={product.id}
+          category={product.category}
+          catalogSearch={catalogReturnLink.search}
+        />
       </div>
     </main>
   )
