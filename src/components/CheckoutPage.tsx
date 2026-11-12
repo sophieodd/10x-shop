@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation } from 'react-router'
 import { useAuth } from '../auth'
 import { useCart } from '../cart'
@@ -12,38 +12,57 @@ const fields = [
 ] as const
 
 type FieldName = (typeof fields)[number]['name']
+type CheckoutValues = Record<FieldName, string>
 type CheckoutErrors = Partial<Record<FieldName, string>>
+
+type OrderConfirmation = {
+  total: number
+  shipping: CheckoutValues
+}
 
 export default function CheckoutPage() {
   const { user } = useAuth()
   const { items, promoCode, clearCart } = useCart()
   const { state } = useLocation()
-  const [confirmedTotal, setConfirmedTotal] = useState<number | null>(null)
+  const [confirmation, setConfirmation] =
+    useState<OrderConfirmation | null>(null)
 
-  if (confirmedTotal !== null) {
+  if (confirmation) {
     return (
-      <main className="mx-auto max-w-xl px-6 py-12">
-        <h1 className="font-[var(--font-display)] text-3xl font-bold">
-          Thank you! Your order has been placed.
-        </h1>
-        <p className="mt-3">Order total: {formatPrice(confirmedTotal)}</p>
-        <Link to="/#catalog" className="mt-5 inline-block underline">
-          Back to the shop
-        </Link>
+      <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
+        <div className="mx-auto max-w-xl">
+          <h1 className="font-[var(--font-display)] text-3xl font-bold">
+            Thank you! Your order has been placed.
+          </h1>
+
+          <p className="mt-4">
+            Thank you, {confirmation.shipping.fullName}.
+          </p>
+          <p className="mt-2">
+            Delivery to {confirmation.shipping.address},{' '}
+            {confirmation.shipping.city}.
+          </p>
+          <p className="mt-3 font-semibold">
+            Order total: {formatPrice(confirmation.total)}
+          </p>
+
+          <Link
+            to="/#catalog"
+            className="mt-5 inline-block text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Back to the shop
+          </Link>
+        </div>
       </main>
     )
   }
 
-  if (items.length === 0 || state?.acknowledgedTaste !== true) {
+  if (items.length === 0) {
     return (
       <Navigate
         to="/cart"
         replace
-        state={{
-          checkoutMessage: items.length === 0
-            ? 'Add an item before checking out.'
-            : 'Check the acknowledgment box to continue.',
-        }}
+        state={{ checkoutMessage: 'Add an item before checking out.' }}
       />
     )
   }
@@ -53,7 +72,22 @@ export default function CheckoutPage() {
       <Navigate
         to="/login"
         replace
-        state={{ from: '/checkout', acknowledgedTaste: true }}
+        state={{
+          from: '/checkout',
+          acknowledgedTaste: state?.acknowledgedTaste === true,
+        }}
+      />
+    )
+  }
+
+  if (state?.acknowledgedTaste !== true) {
+    return (
+      <Navigate
+        to="/cart"
+        replace
+        state={{
+          checkoutMessage: 'Check the acknowledgment box to continue.',
+        }}
       />
     )
   }
@@ -63,8 +97,8 @@ export default function CheckoutPage() {
   return (
     <CheckoutForm
       totals={totals}
-      onPlaceOrder={() => {
-        setConfirmedTotal(totals.total)
+      onPlaceOrder={(shipping) => {
+        setConfirmation({ total: totals.total, shipping })
         clearCart()
       }}
     />
@@ -73,95 +107,151 @@ export default function CheckoutPage() {
 
 type CheckoutFormProps = {
   totals: ReturnType<typeof getCartTotals>
-  onPlaceOrder: () => void
+  onPlaceOrder: (values: CheckoutValues) => void
 }
 
 function CheckoutForm({ totals, onPlaceOrder }: CheckoutFormProps) {
-  const [values, setValues] = useState({
+  const [values, setValues] = useState<CheckoutValues>({
     fullName: '',
     email: '',
     address: '',
     city: '',
   })
   const [errors, setErrors] = useState<CheckoutErrors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const submittedRef = useRef(false)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submittedRef.current) return
 
+    const trimmedValues: CheckoutValues = {
+      fullName: values.fullName.trim(),
+      email: values.email.trim(),
+      address: values.address.trim(),
+      city: values.city.trim(),
+    }
     const nextErrors: CheckoutErrors = {}
 
-    if (values.fullName.trim().length < 3) {
+    if (trimmedValues.fullName.length < 3) {
       nextErrors.fullName = 'Full name must be at least 3 characters.'
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValues.email)) {
       nextErrors.email = 'Please enter a valid email address.'
     }
-    if (values.address.trim().length < 5) {
+    if (trimmedValues.address.length < 5) {
       nextErrors.address = 'Address must be at least 5 characters.'
     }
-    if (!values.city.trim()) {
+    if (!trimmedValues.city) {
       nextErrors.city = 'City is required.'
     }
 
     setErrors(nextErrors)
 
-    if (Object.keys(nextErrors).length === 0) {
-      onPlaceOrder()
+    const firstInvalidField = fields.find(({ name }) => nextErrors[name])
+    if (firstInvalidField) {
+      document.getElementById(`checkout-${firstInvalidField.name}`)?.focus()
+      return
     }
+
+    submittedRef.current = true
+    setIsSubmitting(true)
+    onPlaceOrder(trimmedValues)
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12 text-[var(--color-ink)]">
-      <h1 className="font-[var(--font-display)] text-4xl font-bold">
-        Checkout
-      </h1>
+    <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
+      <div className="mx-auto max-w-5xl">
+        <h1 className="font-[var(--font-display)] text-4xl font-bold">
+          Checkout
+        </h1>
 
-      <div className="mt-6 grid items-start gap-6 md:grid-cols-[2fr_1fr]">
-        <form noValidate onSubmit={handleSubmit} className="space-y-4">
-          {fields.map(({ name, label, autoComplete }) => (
-            <div key={name}>
-              <label htmlFor={`checkout-${name}`} className="text-sm font-bold">
-                {label}
-              </label>
-              <input
-                id={`checkout-${name}`}
-                name={name}
-                type={name === 'email' ? 'email' : 'text'}
-                autoComplete={autoComplete}
-                required
-                value={values[name]}
-                onChange={(event) =>
-                  setValues({ ...values, [name]: event.target.value })
-                }
-                aria-invalid={Boolean(errors[name])}
-                aria-describedby={errors[name] ? `checkout-${name}-error` : undefined}
-                className="mt-1 block w-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3"
-              />
-              {errors[name] && (
-                <p id={`checkout-${name}-error`} role="alert" className="mt-1 text-sm text-red-700">
-                  {errors[name]}
-                </p>
+        <div className="mt-6 grid items-start gap-6 md:grid-cols-[2fr_1fr]">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4">
+            {fields.map(({ name, label, autoComplete }) => (
+              <div key={name}>
+                <label
+                  htmlFor={`checkout-${name}`}
+                  className="text-sm font-semibold"
+                >
+                  {label}
+                </label>
+
+                <input
+                  id={`checkout-${name}`}
+                  name={name}
+                  type={name === 'email' ? 'email' : 'text'}
+                  autoComplete={autoComplete}
+                  required
+                  value={values[name]}
+                  onChange={(event) =>
+                    setValues((current) => ({
+                      ...current,
+                      [name]: event.target.value,
+                    }))
+                  }
+                  aria-invalid={Boolean(errors[name])}
+                  aria-describedby={
+                    errors[name] ? `checkout-${name}-error` : undefined
+                  }
+                  className="mt-1 block w-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 focus-visible:outline-2 focus-visible:outline-[var(--color-blue)]"
+                />
+
+                {errors[name] && (
+                  <p
+                    id={`checkout-${name}-error`}
+                    role="alert"
+                    className="mt-1 text-sm text-red-700"
+                  >
+                    {errors[name]}
+                  </p>
+                )}
+              </div>
+            ))}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="min-h-11 bg-[var(--color-magenta)] px-6 py-3 font-bold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)] disabled:cursor-wait disabled:opacity-50"
+            >
+              {isSubmitting ? 'Placing order…' : 'Place order'}
+            </button>
+          </form>
+
+          <aside className="bg-[var(--color-surface)] p-5">
+            <h2 className="font-[var(--font-display)] text-xl font-bold">
+              Order summary
+            </h2>
+
+            <dl className="mt-4 space-y-3">
+              <div className="flex justify-between gap-4">
+                <dt>Subtotal</dt>
+                <dd>{formatPrice(totals.subtotal)}</dd>
+              </div>
+
+              {totals.discount > 0 && (
+                <div className="flex justify-between gap-4">
+                  <dt>Discount</dt>
+                  <dd>−{formatPrice(totals.discount)}</dd>
+                </div>
               )}
-            </div>
-          ))}
 
-          <button
-            type="submit"
-            className="bg-[var(--color-magenta)] px-6 py-3 font-bold text-white hover:brightness-110"
-          >
-            Place order
-          </button>
-        </form>
+              <div className="flex justify-between gap-4">
+                <dt>Shipping</dt>
+                <dd>
+                  {totals.shipping === 0
+                    ? 'Free'
+                    : formatPrice(totals.shipping)}
+                </dd>
+              </div>
 
-        <aside className="space-y-2 bg-[var(--color-surface)] p-5">
-          <h2 className="text-xl font-bold">Order summary</h2>
-          <p>Subtotal: {formatPrice(totals.subtotal)}</p>
-          {totals.discount > 0 && (
-            <p>Discount: −{formatPrice(totals.discount)}</p>
-          )}
-          <p>Shipping: {totals.shipping === 0 ? 'Free' : formatPrice(totals.shipping)}</p>
-          <p className="font-bold">Total: {formatPrice(totals.total)}</p>
-        </aside>
+              <div className="flex justify-between gap-4 border-t border-[var(--color-border)] pt-3 font-bold">
+                <dt>Total</dt>
+                <dd>{formatPrice(totals.total)}</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
       </div>
     </main>
   )
