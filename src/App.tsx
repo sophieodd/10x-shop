@@ -9,6 +9,7 @@ import ProductDetails from './components/ProductDetails'
 import AuthProvider from './AuthProvider'
 import LoginPage from './components/LoginPage'
 import CheckoutPage from './components/CheckoutPage'
+import Footer from './components/Footer'
 
 function HomePage() {
   return (
@@ -46,6 +47,7 @@ function ShopLayout() {
           }
         />
       </Routes>
+      <Footer />
     </>
   )
 }
