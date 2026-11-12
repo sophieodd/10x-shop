@@ -75,9 +75,21 @@ export default function Hero() {
                   </h2>
                 </div>
 
-                <div className="border-t border-[var(--color-blue)] px-4 py-2 font-[var(--font-tech)] text-[9px] uppercase tracking-wider text-white/60">
-                  SYS.001 / NO PERMISSION REQUIRED
-                </div>
+                <Link
+                to="/about"
+                aria-label="You weren’t supposed to click this. Read the CTRL ME story."
+                className="group flex items-center justify-between gap-3 border-t border-[var(--color-blue)] px-4 py-2 font-[var(--font-tech)] text-[10px] font-bold tracking-wider text-white/80 transition-colors hover:text-[var(--color-lavender)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--color-lavender)]"
+              >
+                <span className="underline decoration-white/40 underline-offset-4">
+                  YOU WEREN’T SUPPOSED TO CLICK THIS
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 text-base leading-none motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5 motion-safe:group-hover:-translate-y-0.5"
+                >
+                  ↗
+                </span>
+              </Link>
               </div>
             </div>
 
