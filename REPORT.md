@@ -28,7 +28,7 @@ Final responsive checks, browser testing and deployment are still pending.
 | Shared cart with quantity changes and removal | Complete |
 | Checkout validation and local confirmation | Complete |
 | Loading, error and empty states | Implemented |
-| Error Boundary | Implemented |
+| Error Boundary | Fallback and reload verified locally |
 | Mobile navigation | Implemented |
 | Full responsive and browser checks | Pending |
 | Deployment and live route checks | Pending |
@@ -58,6 +58,7 @@ Final responsive checks, browser testing and deployment are still pending.
 - Returning from a product restored the catalog filters and page.
 - Product pages opened at the top.
 - Mobile navigation and the account dialog were tested during development.
+- The Error Boundary caught a test render error and displayed the fallback. After I cleared the test trigger, clicking Reload restored the shop.
 
 A complete browser and device test is still required.
 
@@ -118,7 +119,6 @@ I chose the brand direction, text and visual style. Build errors and navigation 
 - Finish responsive checks across all CORE pages.
 - Test keyboard navigation and failure states.
 - Check Chrome and Firefox.
-- Test the Error Boundary fallback.
 - Deploy the app.
 - Verify direct links and refresh on deployed routes.
 - Run the complete shopping flow on the live site.
