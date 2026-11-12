@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useCart } from '../cart'
 import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
+import NotFoundPage from './NotFoundPage'
 
 type ProductReview = {
   rating: number
@@ -25,6 +26,7 @@ type ProductDetailsData = {
 
 type ProductResult =
   | { status: 'success'; product: ProductDetailsData }
+  | { status: 'not-found' }
   | { status: 'error'; message: string }
 
 const minimumLoadingTime = 500
@@ -70,19 +72,39 @@ function ProductSkeleton() {
   )
 }
 
-function ProductError({ message }: { message: string }) {
+function ProductError({
+  message,
+  onRetry,
+}: {
+  message: string
+  onRetry: () => void
+}) {
   const catalogReturnLink = useCatalogReturnLink()
 
   return (
     <main className="min-h-screen bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)]">
-      <p role="alert">{message}</p>
+      <h1 className="text-3xl font-bold">Couldn’t load this product</h1>
 
-      <Link
-        to={catalogReturnLink}
-        className="mt-6 inline-block font-semibold text-[var(--color-blue)]"
-      >
-        ← Back to the catalog
-      </Link>
+      <p className="mt-3" role="alert">
+        {message}
+      </p>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="min-h-11 bg-[var(--color-magenta)] px-4 py-2 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+        >
+          Retry
+        </button>
+
+        <Link
+          to={catalogReturnLink}
+          className="font-semibold text-[var(--color-blue)] underline"
+        >
+          ← Back to the catalog
+        </Link>
+      </div>
     </main>
   )
 }
@@ -136,6 +158,7 @@ function ProductDetailsContent({ id }: { id: number }) {
   const catalogReturnLink = useCatalogReturnLink()
   const { items, addToCart } = useCart()
   const [result, setResult] = useState<ProductResult | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
@@ -153,7 +176,7 @@ function ProductDetailsContent({ id }: { id: number }) {
         })
 
         if (response.status === 404) {
-          nextResult = { status: 'error', message: 'Product not found.' }
+          nextResult = { status: 'not-found' }
         } else {
           if (!response.ok) throw new Error('Could not load this product')
 
@@ -188,20 +211,37 @@ function ProductDetailsContent({ id }: { id: number }) {
       controller.abort()
       window.clearTimeout(displayTimer)
     }
-  }, [id])
+  }, [id, retryCount])
 
   if (!result) return <ProductSkeleton />
 
+  if (result.status === 'not-found') {
+    return (
+      <NotFoundPage
+        message="This product could not be found."
+        catalogLink={catalogReturnLink}
+      />
+    )
+  }
+
   if (result.status === 'error') {
-    return <ProductError message={result.message} />
+    return (
+      <ProductError
+        message={result.message}
+        onRetry={() => {
+          setResult(null)
+          setRetryCount((count) => count + 1)
+        }}
+      />
+    )
   }
 
   const { product } = result
   const originalPrice = Math.round(product.price * 100)
   const salePrice = getDiscountedUnitPriceCents(
-  product.price,
-  product.discountPercentage,
-)
+    product.price,
+    product.discountPercentage,
+  )
   const images = product.images.length > 0 ? product.images : [product.thumbnail]
   const quantityInCart =
     items.find((item) => item.id === product.id)?.quantity ?? 0
@@ -262,14 +302,14 @@ function ProductDetailsContent({ id }: { id: number }) {
             </p>
 
             <p className="mt-6 flex flex-wrap items-baseline gap-3">
-            <span className="text-2xl font-bold">{formatPrice(salePrice)}</span>
+              <span className="text-2xl font-bold">{formatPrice(salePrice)}</span>
 
-            {salePrice < originalPrice && (
+              {salePrice < originalPrice && (
                 <s className="text-sm text-[var(--color-ink)]/60">
-                <span className="sr-only">Original price: </span>
-                {formatPrice(originalPrice)}
+                  <span className="sr-only">Original price: </span>
+                  {formatPrice(originalPrice)}
                 </s>
-            )}
+              )}
             </p>
 
             <p className="mt-2 text-sm">
@@ -335,13 +375,13 @@ function ProductDetailsContent({ id }: { id: number }) {
 
 export default function ProductDetails() {
   const { id } = useParams()
+  const catalogReturnLink = useCatalogReturnLink()
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [id])
 
   const productId = Number(id)
-  
 
   if (
     !id ||
@@ -349,7 +389,12 @@ export default function ProductDetails() {
     !Number.isSafeInteger(productId) ||
     productId < 1
   ) {
-    return <ProductError message="This product does not have a valid ID." />
+    return (
+      <NotFoundPage
+        message="This product link has an invalid ID."
+        catalogLink={catalogReturnLink}
+      />
+    )
   }
 
   return <ProductDetailsContent key={productId} id={productId} />
