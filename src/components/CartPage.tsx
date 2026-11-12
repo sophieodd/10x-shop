@@ -75,7 +75,7 @@ export default function CartPage() {
           <div className="mt-6">
             <p>Your cart is empty.</p>
             <Link
-              to="/#catalog"
+              to="/catalog"
               className="mt-3 inline-block font-semibold text-[var(--color-blue)] underline"
             >
               Browse products

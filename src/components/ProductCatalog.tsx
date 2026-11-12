@@ -249,15 +249,38 @@ export default function ProductCatalog({
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const catalogRef = useRef<HTMLElement>(null)
-    useEffect(() => {
-    if (hash !== '#catalog') return
 
+  const Heading = pathname === '/' ? 'h2' : 'h1'
+
+  useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      catalogRef.current?.scrollIntoView({ block: 'start' })
+      const searchInput = document.getElementById('catalog-search')
+
+      // Avoid moving the page while a search updates the URL.
+      if (document.activeElement === searchInput) return
+
+      if (hash === '#catalog-search') {
+        searchInput?.focus()
+        searchInput?.scrollIntoView({
+          block: 'start',
+          behavior: 'instant',
+        })
+        return
+      }
+
+      if (pathname === '/' && !search && !hash) {
+        window.scrollTo({ top: 0, behavior: 'instant' })
+        return
+      }
+
+      catalogRef.current?.scrollIntoView({
+        block: 'start',
+        behavior: 'instant',
+      })
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [hash, locationKey])
+  }, [hash, locationKey, pathname, search])
 
   const query = searchParams.get('q')?.trim() ?? ''
   const category = query ? '' : (searchParams.get('category') ?? '')
@@ -317,9 +340,11 @@ export default function ProductCatalog({
         const response = await fetch(`${productsEndpoint}/categories`, {
           signal: controller.signal,
         })
+
         if (!response.ok) throw new Error('Could not load categories')
 
         const data: Category[] = await response.json()
+
         if (!controller.signal.aborted) setCategories(data)
       } catch {
         if (!controller.signal.aborted) setCategoryError(true)
@@ -360,6 +385,7 @@ export default function ProductCatalog({
 
       try {
         const response = await fetch(requestUrl, { signal: controller.signal })
+
         if (!response.ok) throw new Error('Could not load products')
 
         const data: ProductsResponse = await response.json()
@@ -417,10 +443,11 @@ export default function ProductCatalog({
 
   function navigateToParams(params: URLSearchParams) {
     const nextSearch = params.toString()
+
     void navigate({
       pathname,
       search: nextSearch ? `?${nextSearch}` : '',
-      hash,
+      hash: pathname === '/' ? '#catalog' : '',
     })
   }
 
@@ -468,7 +495,6 @@ export default function ProductCatalog({
     }
 
     navigateToParams(params)
-    catalogRef.current?.scrollIntoView({ block: 'start' })
   }
 
   function retryProducts() {
@@ -487,9 +513,9 @@ export default function ProductCatalog({
           {eyebrow}
         </p>
 
-        <h2 className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
+        <Heading className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
           {title}
-        </h2>
+        </Heading>
 
         <p className="mt-3 text-[var(--color-ink)]/70">{description}</p>
 
@@ -516,6 +542,7 @@ export default function ProductCatalog({
             <label htmlFor="catalog-search" className="sr-only">
               Search products
             </label>
+
             <input
               id="catalog-search"
               type="search"
@@ -549,6 +576,7 @@ export default function ProductCatalog({
             <p role="alert" className="font-[var(--font-tech)] text-sm">
               The product feed glitched.
             </p>
+
             <button
               type="button"
               onClick={retryProducts}
@@ -562,6 +590,7 @@ export default function ProductCatalog({
         {pageIsOutOfRange && (
           <div className="mt-8">
             <p>This page is outside the current results.</p>
+
             <button
               type="button"
               onClick={() => goToPage(1)}

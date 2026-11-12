@@ -47,7 +47,7 @@ export default function CheckoutPage() {
           </p>
 
           <Link
-            to="/#catalog"
+            to="/catalog"
             className="mt-5 inline-block text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             Back to the shop
