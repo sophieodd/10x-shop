@@ -1,7 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useCart } from '../cart'
-import { formatPrice, getCartTotals } from '../cartPricing'
+import {
+  FREE_SHIPPING_THRESHOLD_CENTS,
+  formatPrice,
+  getCartTotals,
+  getDiscountedUnitPriceCents,
+} from '../cartPricing'
 
 const quantityButtonClass =
   'min-h-11 min-w-11 border border-[var(--color-border)] disabled:opacity-40'
@@ -19,6 +24,10 @@ export default function CartPage() {
   const [acknowledged, setAcknowledged] = useState(false)
 
   const { subtotal, discount, shipping, total } = getCartTotals(items, promoCode)
+  const amountUntilFreeShipping = Math.max(
+    0,
+    FREE_SHIPPING_THRESHOLD_CENTS - (subtotal - discount),
+  )
   const checkoutMessage =
     typeof state?.checkoutMessage === 'string' ? state.checkoutMessage : null
 
@@ -77,7 +86,12 @@ export default function CartPage() {
             <div>
               <ul className="space-y-4">
                 {items.map((item) => {
-                  const unitPrice = Math.round(item.price * 100)
+                  const originalUnitPrice = Math.round(item.price * 100)
+                  const unitPrice = getDiscountedUnitPriceCents(
+                    item.price,
+                    item.discountPercentage,
+                  )
+                  const hasDiscount = unitPrice < originalUnitPrice
 
                   return (
                     <li
@@ -97,8 +111,20 @@ export default function CartPage() {
                         >
                           {item.title}
                         </Link>
-                        <p className="mt-1 text-sm">
-                          {formatPrice(unitPrice)} each
+
+                        <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm">
+                          {hasDiscount && (
+                            <s className="text-[var(--color-ink)]/60">
+                              <span className="sr-only">Original unit price: </span>
+                              {formatPrice(originalUnitPrice)}
+                            </s>
+                          )}
+                          <span className={hasDiscount ? 'font-semibold' : undefined}>
+                            {hasDiscount && (
+                              <span className="sr-only">Discounted price: </span>
+                            )}
+                            {formatPrice(unitPrice)} each
+                          </span>
                         </p>
 
                         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -166,6 +192,7 @@ export default function CartPage() {
               {promoCode ? (
                 <div className="mt-4 flex items-center justify-between gap-3 text-sm">
                   <p role="status">Promo applied: {promoCode}</p>
+
                   <button
                     type="button"
                     onClick={() => setPromoCode(null)}
@@ -180,6 +207,14 @@ export default function CartPage() {
                     Promo code
                   </label>
 
+                  <p
+                    id="cart-promo-hint"
+                    className="mt-2 bg-[var(--color-lavender)] px-3 py-2 text-sm text-[var(--color-ink)]"
+                  >
+                    Limited time: try <strong>10X10</strong> for 10% off.
+                    We’re feeling generous.
+                  </p>
+
                   <div className="mt-2 flex gap-2">
                     <input
                       id="cart-promo"
@@ -189,7 +224,11 @@ export default function CartPage() {
                         setPromoError('')
                       }}
                       aria-invalid={Boolean(promoError)}
-                      aria-describedby={promoError ? 'cart-promo-error' : undefined}
+                      aria-describedby={
+                        promoError
+                          ? 'cart-promo-hint cart-promo-error'
+                          : 'cart-promo-hint'
+                      }
                       className="min-w-0 flex-1 border border-[var(--color-border)] bg-[var(--color-page)] px-3 py-2"
                     />
 
@@ -226,9 +265,16 @@ export default function CartPage() {
                   </div>
                 )}
 
-                <div className="flex justify-between gap-4">
+                <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2">
                   <dt>Shipping</dt>
                   <dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
+                  <dd className="col-span-2 text-xs text-[var(--color-ink)]/65">
+                    <span aria-live="polite">
+                      {shipping === 0
+                        ? 'Free shipping unlocked. Your basket travels for free.'
+                        : `You’re ${formatPrice(amountUntilFreeShipping)} away from free shipping.`}
+                    </span>
+                  </dd>
                 </div>
 
                 <div className="flex justify-between gap-4 border-t border-[var(--color-border)] pt-3 font-bold">

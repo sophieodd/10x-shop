@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useCart } from '../cart'
 import { useDebounce } from '../hooks/useDebounce'
+import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
 
 type ProductCatalogProps = {
   eyebrow: string
@@ -14,6 +15,7 @@ type Product = {
   title: string
   category: string
   price: number
+  discountPercentage?: number
   thumbnail: string
   stock: number
 }
@@ -591,6 +593,11 @@ export default function ProductCatalog({
                 const isAdded = quantityInCart > 0
                 const canAddMore = quantityInCart < product.stock
                 let buttonText = '+ Add to Cart'
+                const originalPrice = Math.round(product.price * 100)
+                const salePrice = getDiscountedUnitPriceCents(
+                product.price,
+                product.discountPercentage,
+            )
 
                 if (isAdded) {
                   buttonText = canAddMore ? 'Added to Cart · +1' : 'Added to Cart'
@@ -616,8 +623,15 @@ export default function ProductCatalog({
                           {product.category}
                         </p>
                         <h3 className="mt-2 font-semibold">{product.title}</h3>
-                        <p className="mt-2 text-sm font-bold">
-                          ${product.price.toFixed(2)}
+                        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 text-sm">
+                        <span className="font-bold">{formatPrice(salePrice)}</span>
+
+                        {salePrice < originalPrice && (
+                            <s className="text-[var(--color-ink)]/60">
+                            <span className="sr-only">Original price: </span>
+                            {formatPrice(originalPrice)}
+                            </s>
+                        )}
                         </p>
                       </article>
                     </Link>
