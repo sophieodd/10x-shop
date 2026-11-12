@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { getDiscountedUnitPriceCents } from '../cartPricing'
 import { useDebounce } from '../hooks/useDebounce'
 import type { CatalogProduct } from './ProductCard'
 import ProductGrid from './ProductGrid'
@@ -134,7 +135,7 @@ function FilterDropdown({
     >
       <summary
         aria-label={`${label}. Selected: ${selectedLabel}`}
-        className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 [&::-webkit-details-marker]:hidden"
+        className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 focus-visible:outline-2 focus-visible:outline-[var(--color-blue)] [&::-webkit-details-marker]:hidden"
       >
         <span>{selectedLabel}</span>
         <span aria-hidden="true">▾</span>
@@ -158,6 +159,114 @@ function FilterDropdown({
         ))}
       </ul>
     </details>
+  )
+}
+
+function parsePriceCents(value: string | null): number | null {
+  const price = value?.trim() ?? ''
+
+  if (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(price)) {
+    return null
+  }
+
+  const cents = Math.round(Number(price) * 100)
+  return Number.isSafeInteger(cents) ? cents : null
+}
+
+type PriceFiltersProps = {
+  minPrice: number | null
+  maxPrice: number | null
+  onApply: (minimum: number | null, maximum: number | null) => void
+}
+
+function PriceFilters({ minPrice, maxPrice, onApply }: PriceFiltersProps) {
+  const [error, setError] = useState('')
+  const hasPriceFilter = minPrice !== null || maxPrice !== null
+  const fieldClass =
+    'flex h-11 w-32 max-w-full items-center gap-2 border border-[var(--color-border)] bg-[var(--color-surface)] px-3 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-[var(--color-blue)] sm:w-36'
+  const inputClass = 'h-full min-w-0 flex-1 bg-transparent text-sm outline-none'
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const fields = new FormData(event.currentTarget)
+    const min = String(fields.get('minPrice') ?? '').trim()
+    const max = String(fields.get('maxPrice') ?? '').trim()
+    const minimum = parsePriceCents(min)
+    const maximum = parsePriceCents(max)
+
+    if ((min !== '' && minimum === null) || (max !== '' && maximum === null)) {
+      setError('Enter a valid price with up to two decimal places.')
+      return
+    }
+
+    if (minimum !== null && maximum !== null && minimum > maximum) {
+      setError('The maximum price must be at least the minimum price.')
+      return
+    }
+
+    setError('')
+    onApply(minimum, maximum)
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      onInput={() => setError('')}
+      noValidate
+      className="max-w-full"
+    >
+      <fieldset className="min-w-0">
+        <legend className="sr-only">Price range</legend>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <label className={fieldClass}>
+            <span className="shrink-0 text-sm">Min $</span>
+            <input
+              type="text"
+              name="minPrice"
+              inputMode="decimal"
+              defaultValue={minPrice === null ? '' : (minPrice / 100).toFixed(2)}
+              className={inputClass}
+            />
+          </label>
+
+          <label className={fieldClass}>
+            <span className="shrink-0 text-sm">Max $</span>
+            <input
+              type="text"
+              name="maxPrice"
+              inputMode="decimal"
+              defaultValue={maxPrice === null ? '' : (maxPrice / 100).toFixed(2)}
+              className={inputClass}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="min-h-11 bg-[var(--color-blue)] px-4 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+          >
+            Apply
+          </button>
+
+          {hasPriceFilter && (
+            <button
+              type="button"
+              onClick={() => onApply(null, null)}
+              className="min-h-11 px-2 text-sm underline focus-visible:outline-2 focus-visible:outline-[var(--color-blue)]"
+            >
+              Clear price
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <p role="alert" className="mt-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+      </fieldset>
+    </form>
   )
 }
 
@@ -225,7 +334,7 @@ function CatalogSkeleton() {
 
       <div
         aria-hidden="true"
-        className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
       >
         {Array.from({ length: pageSize }, (_, index) => (
           <div key={index} className="bg-[var(--color-surface)] p-4">
@@ -249,18 +358,47 @@ export default function ProductCatalog({
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const catalogRef = useRef<HTMLElement>(null)
-
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const Heading = pathname === '/' ? 'h2' : 'h1'
+
+  const query = searchParams.get('q')?.trim() ?? ''
+  const category = query ? '' : (searchParams.get('category') ?? '')
+  const sort = searchParams.get('sort') ?? ''
+  const selectedSort =
+    sortOptions.find((option) => option.value === sort) ?? defaultSort
+
+  const requestedPage = Number(searchParams.get('page') ?? '1')
+  const page =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    Number.isSafeInteger((requestedPage - 1) * pageSize)
+      ? requestedPage
+      : 1
+  const skip = (page - 1) * pageSize
+
+  const minPrice = parsePriceCents(searchParams.get('minPrice'))
+  const maxPrice = parsePriceCents(searchParams.get('maxPrice'))
+  const hasPriceFilter = minPrice !== null || maxPrice !== null
+
+  const [searchDraft, setSearchDraft] = useState<SearchDraft | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryError, setCategoryError] = useState(false)
+  const [results, setResults] = useState<ProductResults | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+
+  const activeDraft =
+    searchDraft?.locationKey === locationKey ? searchDraft : null
+  const searchValue = activeDraft?.value ?? query
+  const debouncedDraft = useDebounce(activeDraft, 400)
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const searchInput = document.getElementById('catalog-search')
+      const searchInput = searchInputRef.current
 
-      // Avoid moving the page while a search updates the URL.
       if (document.activeElement === searchInput) return
 
       if (hash === '#catalog-search') {
-        searchInput?.focus()
+        searchInput?.focus({ preventScroll: true })
         searchInput?.scrollIntoView({
           block: 'start',
           behavior: 'instant',
@@ -281,32 +419,6 @@ export default function ProductCatalog({
 
     return () => window.cancelAnimationFrame(frame)
   }, [hash, locationKey, pathname, search])
-
-  const query = searchParams.get('q')?.trim() ?? ''
-  const category = query ? '' : (searchParams.get('category') ?? '')
-  const sort = searchParams.get('sort') ?? ''
-  const selectedSort =
-    sortOptions.find((option) => option.value === sort) ?? defaultSort
-
-  const requestedPage = Number(searchParams.get('page') ?? '1')
-  const page =
-    Number.isSafeInteger(requestedPage) &&
-    requestedPage > 0 &&
-    Number.isSafeInteger((requestedPage - 1) * pageSize)
-      ? requestedPage
-      : 1
-  const skip = (page - 1) * pageSize
-
-  const [searchDraft, setSearchDraft] = useState<SearchDraft | null>(null)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [categoryError, setCategoryError] = useState(false)
-  const [results, setResults] = useState<ProductResults | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-
-  const activeDraft =
-    searchDraft?.locationKey === locationKey ? searchDraft : null
-  const searchValue = activeDraft?.value ?? query
-  const debouncedDraft = useDebounce(activeDraft, 400)
 
   useEffect(() => {
     if (!activeDraft || debouncedDraft !== activeDraft) return
@@ -356,8 +468,8 @@ export default function ProductCatalog({
   }, [])
 
   const requestParams = new URLSearchParams({
-    limit: String(pageSize),
-    skip: String(skip),
+    limit: hasPriceFilter ? '0' : String(pageSize),
+    skip: hasPriceFilter ? '0' : String(skip),
   })
   let endpoint = productsEndpoint
 
@@ -418,8 +530,26 @@ export default function ProductCatalog({
 
   const currentResults = results?.requestUrl === requestUrl ? results : null
   const data = currentResults?.status === 'success' ? currentResults.data : null
-  const products = data?.products ?? []
-  const total = data?.total ?? 0
+  const fetchedProducts = data?.products ?? []
+
+  const matchingProducts = hasPriceFilter
+    ? fetchedProducts.filter((product) => {
+        const price = getDiscountedUnitPriceCents(
+          product.price,
+          product.discountPercentage,
+        )
+
+        return (
+          (minPrice === null || price >= minPrice) &&
+          (maxPrice === null || price <= maxPrice)
+        )
+      })
+    : fetchedProducts
+
+  const products = hasPriceFilter
+    ? matchingProducts.slice(skip, skip + pageSize)
+    : matchingProducts
+  const total = hasPriceFilter ? matchingProducts.length : (data?.total ?? 0)
   const totalPages = Math.ceil(total / pageSize)
   const pageIsOutOfRange = data !== null && total > 0 && page > totalPages
 
@@ -449,6 +579,36 @@ export default function ProductCatalog({
       search: nextSearch ? `?${nextSearch}` : '',
       hash: pathname === '/' ? '#catalog' : '',
     })
+  }
+
+  function updatePriceFilters(minimum: number | null, maximum: number | null) {
+    const params = new URLSearchParams(search)
+    const pendingQuery = activeDraft?.value.trim() ?? query
+
+    if (pendingQuery !== query) {
+      if (pendingQuery) {
+        params.set('q', pendingQuery)
+        params.delete('category')
+      } else {
+        params.delete('q')
+      }
+
+      setSearchDraft(null)
+    }
+
+    for (const [name, cents] of [
+      ['minPrice', minimum],
+      ['maxPrice', maximum],
+    ] as const) {
+      if (cents === null) {
+        params.delete(name)
+      } else {
+        params.set(name, (cents / 100).toFixed(2))
+      }
+    }
+
+    params.delete('page')
+    navigateToParams(params)
   }
 
   function selectCategory(slug: string) {
@@ -497,6 +657,11 @@ export default function ProductCatalog({
     navigateToParams(params)
   }
 
+  function clearFilters() {
+    setSearchDraft(null)
+    navigateToParams(new URLSearchParams())
+  }
+
   function retryProducts() {
     setResults(null)
     setRetryCount((count) => count + 1)
@@ -519,7 +684,7 @@ export default function ProductCatalog({
 
         <p className="mt-3 text-[var(--color-ink)]/70">{description}</p>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3 font-[var(--font-display)] text-sm">
+        <div className="mt-6 flex flex-wrap items-start gap-3 font-[var(--font-display)] text-sm">
           {(categories.length > 0 || category || query) && (
             <FilterDropdown
               label="Filter by category"
@@ -538,12 +703,20 @@ export default function ProductCatalog({
             onSelect={selectSort}
           />
 
-          <div className="w-full md:ml-auto md:w-80">
+          <PriceFilters
+            key={`${minPrice}:${maxPrice}`}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            onApply={updatePriceFilters}
+          />
+
+          <div className="w-full xl:min-w-56 xl:flex-1">
             <label htmlFor="catalog-search" className="sr-only">
               Search products
             </label>
 
             <input
+              ref={searchInputRef}
               id="catalog-search"
               type="search"
               value={searchValue}
@@ -604,12 +777,16 @@ export default function ProductCatalog({
         {data && total === 0 && (
           <div className="mt-8">
             <p>
-              {query ? `No products found for “${query}”.` : 'No attachments found.'}
+              {hasPriceFilter
+                ? 'No products match that price range.'
+                : query
+                  ? `No products found for “${query}”.`
+                  : 'No attachments found.'}
             </p>
 
             <button
               type="button"
-              onClick={() => navigateToParams(new URLSearchParams())}
+              onClick={clearFilters}
               className="mt-3 min-h-11 font-semibold text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
             >
               Clear filters
