@@ -32,7 +32,7 @@ const socialIcons = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[var(--color-blue)] text-white">
+    <footer className="bg-[var(--color-black)] text-white">
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
@@ -76,6 +76,12 @@ export default function Footer() {
               Cart
             </Link>
             <Link
+            to="/about"
+            className="inline-flex min-h-11 items-center underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            The Archives
+          </Link>
+            <Link
             to="/fine-print"
             className="inline-flex min-h-11 items-center underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
           >
@@ -96,7 +102,7 @@ export default function Footer() {
                 {contactEmail}
               </a>
             ) : (
-              <p className="mt-2 text-sm">Email coming soon.</p>
+              <p className="mt-2 text-sm">Please never contact</p>
             )}
           </section>
         </div>
