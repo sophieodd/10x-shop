@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
-import { useCart } from '../cart'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useDebounce } from '../hooks/useDebounce'
-import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
+import type { CatalogProduct } from './ProductCard'
+import ProductGrid from './ProductGrid'
 
 type ProductCatalogProps = {
   eyebrow: string
@@ -10,18 +10,8 @@ type ProductCatalogProps = {
   description: string
 }
 
-type Product = {
-  id: number
-  title: string
-  category: string
-  price: number
-  discountPercentage?: number
-  thumbnail: string
-  stock: number
-}
-
 type ProductsResponse = {
-  products: Product[]
+  products: CatalogProduct[]
   total: number
 }
 
@@ -124,6 +114,7 @@ function FilterDropdown({
     }
 
     document.addEventListener('pointerdown', handleOutsidePointerDown, true)
+
     return () => {
       document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
     }
@@ -254,11 +245,19 @@ export default function ProductCatalog({
   title,
   description,
 }: ProductCatalogProps) {
-  const { items, addToCart } = useCart()
   const { key: locationKey, pathname, search, hash } = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const catalogRef = useRef<HTMLElement>(null)
+    useEffect(() => {
+    if (hash !== '#catalog') return
+
+    const frame = window.requestAnimationFrame(() => {
+      catalogRef.current?.scrollIntoView({ block: 'start' })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [hash, locationKey])
 
   const query = searchParams.get('q')?.trim() ?? ''
   const category = query ? '' : (searchParams.get('category') ?? '')
@@ -585,73 +584,7 @@ export default function ProductCatalog({
               Showing {skip + 1}–{skip + products.length} of {total}
             </p>
 
-            <ul className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => {
-                const quantityInCart =
-                  items.find((item) => item.id === product.id)?.quantity ?? 0
-
-                const isAdded = quantityInCart > 0
-                const canAddMore = quantityInCart < product.stock
-                let buttonText = '+ Add to Cart'
-                const originalPrice = Math.round(product.price * 100)
-                const salePrice = getDiscountedUnitPriceCents(
-                product.price,
-                product.discountPercentage,
-            )
-
-                if (isAdded) {
-                  buttonText = canAddMore ? 'Added to Cart · +1' : 'Added to Cart'
-                } else if (!canAddMore) {
-                  buttonText = 'Out of stock'
-                }
-
-                return (
-                  <li key={product.id} className="group relative">
-                    <Link
-                      to={`/products/${product.id}`}
-                      state={{ catalogSearch: search }}
-                      className="block h-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
-                    >
-                      <article className="h-full bg-[var(--color-surface)] p-4 transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02]">
-                        <img
-                          src={product.thumbnail}
-                          alt={product.title}
-                          className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
-                        />
-
-                        <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
-                          {product.category}
-                        </p>
-                        <h3 className="mt-2 font-semibold">{product.title}</h3>
-                        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 text-sm">
-                        <span className="font-bold">{formatPrice(salePrice)}</span>
-
-                        {salePrice < originalPrice && (
-                            <s className="text-[var(--color-ink)]/60">
-                            <span className="sr-only">Original price: </span>
-                            {formatPrice(originalPrice)}
-                            </s>
-                        )}
-                        </p>
-                      </article>
-                    </Link>
-
-                    <button
-                      type="button"
-                      disabled={!canAddMore}
-                      onClick={() => addToCart(product, 1)}
-                      className={`absolute right-6 top-6 z-10 px-3 py-2 text-sm font-semibold text-white transition-colors enabled:hover:brightness-110 disabled:cursor-default ${
-                        isAdded
-                          ? 'bg-[var(--color-magenta)]'
-                          : 'bg-[var(--color-blue)] [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100'
-                      }`}
-                    >
-                      {buttonText}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
+            <ProductGrid products={products} catalogSearch={search} />
           </>
         )}
 
