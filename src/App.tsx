@@ -10,6 +10,7 @@ import AuthProvider from './AuthProvider'
 import LoginPage from './components/LoginPage'
 import CheckoutPage from './components/CheckoutPage'
 import Footer from './components/Footer'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function HomePage() {
   return (
@@ -54,10 +55,12 @@ function ShopLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <ShopLayout />
-      </CartProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <ShopLayout />
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
