@@ -75,6 +75,12 @@ export default function Footer() {
             <Link to="/cart" className={linkClass}>
               Cart
             </Link>
+            <Link
+            to="/fine-print"
+            className="inline-flex min-h-11 items-center underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            The Fine Print
+          </Link>
           </nav>
 
           <section aria-labelledby="footer-contact">
