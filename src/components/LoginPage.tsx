@@ -159,7 +159,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
         {!onSuccess && (
           <Link
-            to="/#catalog"
+            to="/catalog"
             className="mt-5 inline-flex min-h-11 items-center text-sm text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
           >
             ← Back to catalog

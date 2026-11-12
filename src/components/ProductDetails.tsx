@@ -34,12 +34,12 @@ function useCatalogReturnLink() {
   const catalogSearch: unknown = state?.catalogSearch
 
   return {
-    pathname: '/',
+    pathname: '/catalog',
     search:
       typeof catalogSearch === 'string' && catalogSearch.startsWith('?')
         ? catalogSearch
         : '',
-    hash: '#catalog',
+    hash: '',
   }
 }
 

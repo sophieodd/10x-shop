@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth'
 import LoginPage from './LoginPage'
@@ -7,9 +7,14 @@ export default function AccountMenu() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const dialog = useRef<HTMLDialogElement>(null)
+  const [loginFormKey, setLoginFormKey] = useState(0)
+
+  function closeDialog() {
+    dialog.current?.close()
+  }
 
   function handleLogout() {
-    dialog.current?.close()
+    closeDialog()
     logout()
     navigate('/')
   }
@@ -21,7 +26,7 @@ export default function AccountMenu() {
         aria-label={user ? 'Open account menu' : 'Log in'}
         aria-haspopup="dialog"
         onClick={() => dialog.current?.showModal()}
-        className={`grid min-h-11 min-w-11 place-items-center focus-visible:outline-2 focus-visible:outline-[var(--color-blue)] ${
+        className={`grid h-11 w-11 shrink-0 place-items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)] ${
           user
             ? 'text-[var(--color-magenta)]'
             : 'text-[var(--color-ink)] hover:text-[var(--color-magenta)]'
@@ -45,33 +50,38 @@ export default function AccountMenu() {
       <dialog
         ref={dialog}
         aria-label={user ? 'Your account' : 'Log in'}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm overflow-y-auto bg-[var(--color-surface)] p-0 text-[var(--color-ink)] shadow-xl backdrop:bg-black/40"
+        onClose={() => setLoginFormKey((current) => current + 1)}
+        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%_-_2rem)] max-w-sm overflow-y-auto bg-[var(--color-surface)] p-0 text-[var(--color-ink)] shadow-xl backdrop:bg-black/40"
       >
         <button
           type="button"
           aria-label="Close account dialog"
-          onClick={() => dialog.current?.close()}
-          className="absolute right-2 top-2 grid h-11 w-11 place-items-center text-2xl hover:text-[var(--color-magenta)]"
+          onClick={closeDialog}
+          className="absolute right-2 top-2 grid h-11 w-11 place-items-center text-2xl hover:text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-[var(--color-blue)]"
         >
           ×
         </button>
 
         {user ? (
-          <div className="p-6 pr-12">
+          <div className="p-6 pr-14">
             <h2 className="font-[var(--font-display)] text-2xl font-bold">
               Your account
             </h2>
-            <p className="mt-2 break-words">Signed in as {user.username}</p>
+
+            <p className="mt-2 break-words">
+              Signed in as {user.username}
+            </p>
+
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-4 min-h-11 font-semibold text-[var(--color-magenta)] underline"
+              className="mt-4 min-h-11 font-semibold text-[var(--color-magenta)] underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)]"
             >
               Log out
             </button>
           </div>
         ) : (
-          <LoginPage onSuccess={() => dialog.current?.close()} />
+          <LoginPage key={loginFormKey} onSuccess={closeDialog} />
         )}
       </dialog>
     </>

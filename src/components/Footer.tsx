@@ -69,7 +69,7 @@ export default function Footer() {
             aria-label="Footer navigation"
             className="flex gap-5 font-[var(--font-tech)] text-sm"
           >
-            <Link to="/#catalog" className={linkClass}>
+            <Link to="/catalog" className={linkClass}>
               Catalog
             </Link>
             <Link to="/cart" className={linkClass}>

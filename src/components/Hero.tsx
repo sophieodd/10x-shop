@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+
 export default function Hero() {
   return (
       <section className="relative overflow-hidden bg-[var(--color-ink)] px-6 py-16 text-white sm:px-10 lg:min-h-[540px] lg:py-20">
@@ -27,12 +29,12 @@ export default function Hero() {
               Find your own frequency.
             </p>
 
-            <a
-              href="#catalog"
+            <Link
+              to="/catalog"
               className="mt-7 inline-flex items-center gap-8 bg-[var(--color-blue)] px-5 py-4 font-[var(--font-tech)] text-sm font-bold text-white hover:brightness-110 focus:outline-2 focus:outline-offset-4 focus:outline-[var(--color-lavender)]"
             >
               Explore the drop <span aria-hidden="true">↓</span>
-            </a>
+          </Link>
           </div>
 
           <div className="relative mx-auto w-full max-w-lg">
