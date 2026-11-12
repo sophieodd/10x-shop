@@ -335,7 +335,13 @@ function ProductDetailsContent({ id }: { id: number }) {
 
 export default function ProductDetails() {
   const { id } = useParams()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [id])
+
   const productId = Number(id)
+  
 
   if (
     !id ||

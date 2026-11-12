@@ -114,6 +114,7 @@ function FilterDropdown({
     }
 
     document.addEventListener('pointerdown', handleOutsidePointerDown, true)
+
     return () => {
       document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
     }
@@ -248,6 +249,15 @@ export default function ProductCatalog({
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const catalogRef = useRef<HTMLElement>(null)
+    useEffect(() => {
+    if (hash !== '#catalog') return
+
+    const frame = window.requestAnimationFrame(() => {
+      catalogRef.current?.scrollIntoView({ block: 'start' })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [hash, locationKey])
 
   const query = searchParams.get('q')?.trim() ?? ''
   const category = query ? '' : (searchParams.get('category') ?? '')
