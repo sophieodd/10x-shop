@@ -12,6 +12,7 @@ import CheckoutPage from './components/CheckoutPage'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import NotFoundPage from './components/NotFoundPage'
+import FinePrintPage from './components/FinePrintPage'
 
 function HomePage() {
   return (
@@ -54,6 +55,7 @@ function ShopLayout() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/fine-print" element={<FinePrintPage />} />
         <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
