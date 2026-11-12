@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth'
 
 type LoginPageProps = {
@@ -34,13 +34,25 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
     const nextErrors: LoginErrors = {}
 
-    if (!username.trim()) nextErrors.username = 'Username is required.'
-    if (!password.trim()) nextErrors.password = 'Password is required.'
+    if (!username.trim()) {
+      nextErrors.username = 'Username is required.'
+    }
+
+    if (!password.trim()) {
+      nextErrors.password = 'Password is required.'
+    } else if (password.length < 6) {
+      nextErrors.password = 'Password must be at least 6 characters.'
+    }
 
     setErrors(nextErrors)
-    if (nextErrors.username || nextErrors.password) return
 
-    login(username)
+    if (nextErrors.username || nextErrors.password) {
+      const invalidFieldId = nextErrors.username ? usernameId : passwordId
+      document.getElementById(invalidFieldId)?.focus()
+      return
+    }
+
+    login(username.trim())
     setPassword('')
 
     if (onSuccess) {
@@ -48,18 +60,17 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       return
     }
 
-    const fromCheckout =
-      location.state?.from === '/checkout' &&
-      location.state?.acknowledgedTaste === true
-
-    if (fromCheckout) {
+    if (location.state?.from === '/checkout') {
       navigate('/checkout', {
         replace: true,
-        state: { acknowledgedTaste: true },
+        state: {
+          acknowledgedTaste: location.state?.acknowledgedTaste === true,
+        },
       })
-    } else {
-      navigate('/', { replace: true })
+      return
     }
+
+    navigate('/', { replace: true })
   }
 
   return (
@@ -80,6 +91,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <label htmlFor={usernameId} className="text-sm font-semibold">
               Username
             </label>
+
             <input
               id={usernameId}
               name="username"
@@ -93,6 +105,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               }
               className={inputClassName}
             />
+
             {errors.username && (
               <p
                 id={`${usernameId}-error`}
@@ -108,12 +121,14 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <label htmlFor={passwordId} className="text-sm font-semibold">
               Password
             </label>
+
             <input
               id={passwordId}
               name="password"
               type="password"
               autoComplete="current-password"
               required
+              minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(errors.password)}
@@ -122,6 +137,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               }
               className={inputClassName}
             />
+
             {errors.password && (
               <p
                 id={`${passwordId}-error`}
@@ -135,11 +151,20 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
           <button
             type="submit"
-            className="w-full bg-[var(--color-blue)] px-5 py-3 font-semibold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+            className="min-h-11 w-full bg-[var(--color-blue)] px-5 py-3 font-semibold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
           >
             Log in
           </button>
         </form>
+
+        {!onSuccess && (
+          <Link
+            to="/#catalog"
+            className="mt-5 inline-flex min-h-11 items-center text-sm text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+          >
+            ← Back to catalog
+          </Link>
+        )}
 
         <button
           type="button"
