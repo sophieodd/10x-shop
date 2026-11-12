@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useCart } from '../cart'
+import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
 
 type ProductReview = {
   rating: number
@@ -15,6 +16,7 @@ type ProductDetailsData = {
   description: string
   category: string
   price: number
+  discountPercentage?: number
   stock: number
   thumbnail: string
   images: string[]
@@ -195,6 +197,11 @@ function ProductDetailsContent({ id }: { id: number }) {
   }
 
   const { product } = result
+  const originalPrice = Math.round(product.price * 100)
+  const salePrice = getDiscountedUnitPriceCents(
+  product.price,
+  product.discountPercentage,
+)
   const images = product.images.length > 0 ? product.images : [product.thumbnail]
   const quantityInCart =
     items.find((item) => item.id === product.id)?.quantity ?? 0
@@ -254,8 +261,15 @@ function ProductDetailsContent({ id }: { id: number }) {
               {product.description}
             </p>
 
-            <p className="mt-6 text-2xl font-bold">
-              ${product.price.toFixed(2)}
+            <p className="mt-6 flex flex-wrap items-baseline gap-3">
+            <span className="text-2xl font-bold">{formatPrice(salePrice)}</span>
+
+            {salePrice < originalPrice && (
+                <s className="text-sm text-[var(--color-ink)]/60">
+                <span className="sr-only">Original price: </span>
+                {formatPrice(originalPrice)}
+                </s>
+            )}
             </p>
 
             <p className="mt-2 text-sm">

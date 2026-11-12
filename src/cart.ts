@@ -6,6 +6,7 @@ export type CartProduct = {
   price: number
   thumbnail: string
   stock: number
+  discountPercentage?: number
 }
 
 export type CartItem = CartProduct & {
