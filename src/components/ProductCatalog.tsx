@@ -602,9 +602,19 @@ export default function ProductCatalog({
         )}
 
         {data && total === 0 && (
-          <p className="mt-8">
-            {query ? `No products found for “${query}”.` : 'No attachments found.'}
-          </p>
+          <div className="mt-8">
+            <p>
+              {query ? `No products found for “${query}”.` : 'No attachments found.'}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => navigateToParams(new URLSearchParams())}
+              className="mt-3 min-h-11 font-semibold text-[var(--color-blue)] underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
+            >
+              Clear filters
+            </button>
+          </div>
         )}
 
         {products.length > 0 && (

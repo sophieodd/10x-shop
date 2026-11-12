@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useCart } from '../cart'
 import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
 import NotFoundPage from './NotFoundPage'
+import ProductGrid from './ProductGrid'
+import type { CatalogProduct } from './ProductCard'
 
 type ProductReview = {
   rating: number
@@ -109,7 +111,48 @@ function ProductError({
   )
 }
 
-function CustomerReviews({ reviews }: { reviews: ProductReview[] }) {
+function CustomerReviews({
+  reviews,
+  onAddReview,
+}: {
+  reviews: ProductReview[]
+  onAddReview: (review: ProductReview) => void
+}) {
+  const [error, setError] = useState('')
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const form = event.currentTarget
+    const fields = new FormData(form)
+    const reviewerName = String(fields.get('reviewerName') ?? '').trim()
+    const comment = String(fields.get('comment') ?? '').trim()
+    const rating = Number(fields.get('rating'))
+
+    if (!reviewerName || !comment || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+      setError('Enter your name, select a rating and write a comment.')
+      return
+    }
+
+    try {
+      onAddReview({
+        reviewerName,
+        comment,
+        rating,
+        date: new Date().toISOString(),
+      })
+    } catch {
+      setError('Your review couldn’t be saved in this browser. Please try again.')
+      return
+    }
+
+    setError('')
+    form.reset()
+  }
+
+  const fieldClassName =
+    'mt-1 w-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2'
+
   return (
     <section
       aria-labelledby="product-reviews-title"
@@ -134,7 +177,6 @@ function CustomerReviews({ reviews }: { reviews: ProductReview[] }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold">{review.reviewerName}</p>
                 <p className="text-sm font-semibold text-[var(--color-magenta)]">
-                  <span aria-hidden="true">★ </span>
                   {review.rating} out of 5
                 </p>
               </div>
@@ -145,11 +187,124 @@ function CustomerReviews({ reviews }: { reviews: ProductReview[] }) {
                 </time>
               </p>
 
-              <p className="mt-3">{review.comment}</p>
+              <p className="mt-3 whitespace-pre-wrap break-words">
+                {review.comment}
+              </p>
             </li>
           ))}
         </ul>
       )}
+
+      <form
+        onSubmit={handleSubmit}
+        aria-labelledby="write-review-title"
+        className="mt-8 max-w-xl space-y-4"
+      >
+        <h3 id="write-review-title" className="text-xl font-bold">
+          Write a review
+        </h3>
+
+        <label className="block text-sm font-semibold">
+          Name
+          <input
+            name="reviewerName"
+            autoComplete="name"
+            required
+            maxLength={80}
+            className={fieldClassName}
+          />
+        </label>
+
+        <label className="block text-sm font-semibold">
+          Rating
+          <select name="rating" required defaultValue="" className={fieldClassName}>
+            <option value="" disabled>Select a rating</option>
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <option key={rating} value={rating}>
+                {rating} out of 5
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-sm font-semibold">
+          Comment
+          <textarea
+            name="comment"
+            required
+            maxLength={1000}
+            rows={4}
+            className={fieldClassName}
+          />
+        </label>
+
+        {error && <p role="alert" className="text-sm">{error}</p>}
+
+        <button
+          type="submit"
+          className="min-h-11 bg-[var(--color-blue)] px-4 py-2 font-semibold text-white"
+        >
+          Post review
+        </button>
+      </form>
+    </section>
+  )
+}
+
+function RelatedProducts({
+  productId,
+  category,
+  catalogSearch,
+}: {
+  productId: number
+  category: string
+  catalogSearch: string
+}) {
+  const [products, setProducts] = useState<CatalogProduct[]>([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadRelatedProducts() {
+      try {
+        const response = await fetch(
+          `https://dummyjson.com/products/category/${encodeURIComponent(category)}?limit=5`,
+          { signal: controller.signal },
+        )
+
+        if (!response.ok) return
+
+        const data: { products: CatalogProduct[] } = await response.json()
+
+        if (!controller.signal.aborted) {
+          setProducts(
+            data.products
+              .filter((product) => product.id !== productId)
+              .slice(0, 4),
+          )
+        }
+      } catch {
+        // The product details stay available if recommendations fail.
+      }
+    }
+
+    void loadRelatedProducts()
+
+    return () => controller.abort()
+  }, [category, productId])
+
+  if (products.length === 0) return null
+
+  return (
+    <section aria-labelledby="related-products-title" className="mt-12">
+      <h2
+        id="related-products-title"
+        className="font-[var(--font-display)] text-3xl font-bold"
+      >
+        Related products
+      </h2>
+
+      <ProductGrid products={products} catalogSearch={catalogSearch} />
     </section>
   )
 }
@@ -161,6 +316,31 @@ function ProductDetailsContent({ id }: { id: number }) {
   const [retryCount, setRetryCount] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const reviewStorageKey = `10x-shop:reviews:${id}`
+  const [localReviews, setLocalReviews] = useState<ProductReview[]>(() => {
+    try {
+      const saved = window.localStorage.getItem(reviewStorageKey)
+      const parsed: unknown = saved ? JSON.parse(saved) : []
+
+      if (!Array.isArray(parsed)) return []
+
+      return parsed.filter((review): review is ProductReview => {
+        return (
+          review !== null &&
+          typeof review === 'object' &&
+          typeof review.reviewerName === 'string' &&
+          typeof review.comment === 'string' &&
+          typeof review.date === 'string' &&
+          Number.isFinite(Date.parse(review.date)) &&
+          Number.isInteger(review.rating) &&
+          review.rating >= 1 &&
+          review.rating <= 5
+        )
+      })
+    } catch {
+      return []
+    }
+  })
 
   useEffect(() => {
     const controller = new AbortController()
@@ -237,6 +417,19 @@ function ProductDetailsContent({ id }: { id: number }) {
   }
 
   const { product } = result
+  const reviews = [...localReviews, ...(product.reviews ?? [])].sort(
+  (first, second) => Date.parse(second.date) - Date.parse(first.date),
+)
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : null
+
+  function addReview(review: ProductReview) {
+    const nextReviews = [review, ...localReviews]
+    window.localStorage.setItem(reviewStorageKey, JSON.stringify(nextReviews))
+    setLocalReviews(nextReviews)
+  }
   const originalPrice = Math.round(product.price * 100)
   const salePrice = getDiscountedUnitPriceCents(
     product.price,
@@ -289,13 +482,28 @@ function ProductDetailsContent({ id }: { id: number }) {
           </div>
 
           <div>
-            <p className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-wider text-[var(--color-magenta)]">
-              {product.category}
-            </p>
+            <Link
+              to={`/catalog?${new URLSearchParams({ category: product.category })}`}
+              className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-wider text-[var(--color-magenta)] underline"
+            >
+              {product.category.replaceAll('-', ' ')}
+            </Link>
 
             <h1 className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
               {product.title}
             </h1>
+
+            <p className="mt-2 text-sm font-semibold">
+              {averageRating === null ? (
+                'No reviews yet'
+              ) : (
+                <>
+                  <span aria-hidden="true">★ </span>
+                  {averageRating.toFixed(1)} out of 5 · {reviews.length}{' '}
+                  {reviews.length === 1 ? 'review' : 'reviews'}
+                </>
+              )}
+            </p>
 
             <p className="mt-5 leading-relaxed text-[var(--color-ink)]/70">
               {product.description}
@@ -313,9 +521,11 @@ function ProductDetailsContent({ id }: { id: number }) {
             </p>
 
             <p className="mt-2 text-sm">
-              {product.stock > 0
-                ? `${product.stock} in stock`
-                : 'Currently out of stock'}
+              {product.stock === 0
+                ? 'Currently out of stock'
+                : product.stock <= 5
+                  ? `Only ${product.stock} left in stock`
+                  : `${product.stock} in stock`}
             </p>
 
             <div className="mt-8 flex items-center gap-4">
@@ -367,7 +577,13 @@ function ProductDetailsContent({ id }: { id: number }) {
           </div>
         </div>
 
-        <CustomerReviews reviews={product.reviews ?? []} />
+        <CustomerReviews reviews={reviews} onAddReview={addReview} />
+        <RelatedProducts
+          key={product.id}
+          productId={product.id}
+          category={product.category}
+          catalogSearch={catalogReturnLink.search}
+        />
       </div>
     </main>
   )
