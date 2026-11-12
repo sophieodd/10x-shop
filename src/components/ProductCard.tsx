@@ -4,6 +4,8 @@ import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
 
 export type CatalogProduct = CartProduct & {
   category: string
+  brand?: string
+  rating?: number
 }
 
 type ProductCardProps = {
@@ -21,14 +23,22 @@ export default function ProductCard({
 
   const isAdded = quantityInCart > 0
   const canAddMore = quantityInCart < product.stock
+  const discountPercentage = product.discountPercentage ?? 0
   const originalPrice = Math.round(product.price * 100)
   const salePrice = getDiscountedUnitPriceCents(
     product.price,
-    product.discountPercentage,
+    discountPercentage,
   )
+  const hasDiscount = salePrice < originalPrice
+
+  let stockLabel = 'In stock'
+  if (product.stock === 0) {
+    stockLabel = 'Out of stock'
+  } else if (product.stock <= 5) {
+    stockLabel = `Only ${product.stock} left`
+  }
 
   let buttonText = '+ Add to Cart'
-
   if (isAdded) {
     buttonText = canAddMore ? 'Added to Cart · +1' : 'Added to Cart'
   } else if (!canAddMore) {
@@ -51,19 +61,39 @@ export default function ProductCard({
 
           <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
             {product.category}
+            {product.brand && ` · ${product.brand}`}
           </p>
 
           <h3 className="mt-2 font-semibold">{product.title}</h3>
 
-          <p className="mt-2 flex flex-wrap items-baseline gap-x-2 text-sm">
+          {typeof product.rating === 'number' && (
+            <p className="mt-1 text-sm font-semibold">
+              <span aria-hidden="true" className="text-[var(--color-magenta)]">
+                ★{' '}
+              </span>
+              {product.rating.toFixed(1)} out of 5
+            </p>
+          )}
+
+          <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
             <span className="font-bold">{formatPrice(salePrice)}</span>
 
-            {salePrice < originalPrice && (
+            {hasDiscount && (
               <s className="text-[var(--color-ink)]/60">
                 <span className="sr-only">Original price: </span>
                 {formatPrice(originalPrice)}
               </s>
             )}
+
+            {hasDiscount && discountPercentage >= 1 && (
+              <span className="bg-[var(--color-lavender)] px-2 py-0.5 text-xs font-semibold">
+                −{Math.round(discountPercentage)}%
+              </span>
+            )}
+          </p>
+
+          <p className="mt-2 text-sm font-medium text-[var(--color-ink)]/70">
+            {stockLabel}
           </p>
         </article>
       </Link>
