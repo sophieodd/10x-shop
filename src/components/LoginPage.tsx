@@ -166,13 +166,12 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           </Link>
         )}
 
-        <button
-          type="button"
-          disabled
-          className="mt-5 min-h-11 w-full cursor-not-allowed border-t border-[var(--color-border)] pt-4 text-sm font-semibold opacity-60"
+        <a
+          href="https://10x-crm-sophie.vercel.app/"
+          className="mt-5 flex min-h-11 w-full items-center justify-center border-t border-[var(--color-border)] pt-4 text-sm font-semibold text-[var(--color-magenta)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-blue)]"
         >
           Log in as administrator
-        </button>
+        </a>
       </div>
     </Container>
   )
