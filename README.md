@@ -161,7 +161,6 @@ See [REPORT.md](REPORT.md) for completed checks and remaining verification.
 - Local data belongs to the current browser and is not synced between devices.
 - Order confirmation uses React state and is lost after a page reload.
 - Order history, Profile, local review submission and related products are not implemented.
-- Final cross-browser and complete live checkout verification remain to be recorded.
 
 ## Credits
 

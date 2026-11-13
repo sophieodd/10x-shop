@@ -12,9 +12,9 @@ The shop is deployed on Vercel:
 
 https://sophies-10x-shop.vercel.app/
 
-The main shopping flow has been tested locally. Type checking, linting and production builds have passed during development. Responsive checks are complete.
+CORE implementation and verification are complete. The shopping flow has been checked locally and on the live site, including Chrome and Firefox.
 
-The deployed homepage has also been tested with Lighthouse. Final cross-browser testing and the complete live checkout flow still need to be recorded.
+Type checking, linting and the production build pass. Responsive layouts, keyboard navigation, API failure states and direct route refresh have been checked.
 
 ## Planned and delivered
 
@@ -31,14 +31,15 @@ The deployed homepage has also been tested with Lighthouse. Final cross-browser 
 | Guest redirect from checkout to login | Complete |
 | Shared cart with quantity changes and removal | Complete |
 | Checkout validation and local confirmation | Complete |
-| Loading, error and empty states | Implemented |
+| Loading, error and empty states | Implemented and checked |
 | Error Boundary | Fallback and reload verified locally |
-| Mobile navigation | Implemented |
+| Mobile navigation | Implemented and checked |
 | Responsive checks | Complete |
 | Deployment | Complete |
-| Unknown live route | Checked: custom 404 and catalog link appear |
-| Valid live routes and refresh | Final verification pending |
-| Complete Chrome and Firefox flow | Final verification pending |
+| Unknown live route | Custom 404 and catalog link checked |
+| Valid live routes and refresh | Complete |
+| Complete Chrome and Firefox flow | Complete |
+| Keyboard and API failure-state checks | Complete |
 | Lighthouse report | Complete |
 
 ## Additional features delivered
@@ -60,19 +61,22 @@ The deployed homepage has also been tested with Lighthouse. Final cross-browser 
 
 ## Checks completed
 
-- npm run typecheck passed during development.
-- npm run lint passed during development.
-- npm run build passed during development.
+- npm run typecheck passed.
+- npm run lint passed.
+- npm run build passed.
 - Guest checkout returned to checkout after login.
 - Invalid checkout fields displayed errors.
 - A valid order displayed confirmation and cleared the cart.
 - Returning from a product restored the catalog filters and page.
 - Product pages opened at the top.
-- Mobile navigation and the account dialog were tested during development.
+- Mobile navigation and the account dialog were checked.
 - Responsive layouts were checked.
 - The Error Boundary caught a test render error and displayed its fallback.
 - After clearing the test trigger, Reload restored the shop.
 - An unknown live route displayed the custom 404 page.
+- Valid deployed routes opened directly and worked after refresh.
+- The complete shopping flow was checked on the live site in Chrome and Firefox.
+- Keyboard navigation and API failure states were checked.
 - Lighthouse contrast, meta description and robots.txt checks passed after fixes.
 
 ## Lighthouse results
@@ -109,19 +113,19 @@ Lavender banners and discount badges were given dark text. The faint coordinates
 
 A meta description and public/robots.txt were added.
 
-The second report also identified an accessible-name warning on the map link. Its label was updated to include the visible coordinates after that report was captured. That specific change needs a follow-up check.
+The second report also identified an accessible-name warning on the map link. Its label was updated to include the visible coordinates after that report was captured. The saved report therefore predates that correction.
 
 Lighthouse results vary between runs. These results cover one page and theme, not every screen or interaction.
 
-## Earlier recorded build
+## Latest production build
 
 | Output | Size | Gzip |
 | --- | --- | --- |
-| Main JavaScript bundle | 310.76 kB | 95.57 kB |
-| CSS | 28.51 kB | 6.14 kB |
-| HTML | 0.77 kB | 0.42 kB |
+| Main JavaScript bundle | 338.54 kB | 103.45 kB |
+| CSS | 42.94 kB | 8.66 kB |
+| HTML | 1.56 kB | 0.76 kB |
 
-These figures came from an earlier local build. They are retained as a development record and do not represent the latest bundle after the theme and other additions.
+Type checking, linting and the production build passed after reorganising the source files into components, pages, context, hooks and utils.
 
 ## Problems and fixes
 
@@ -155,7 +159,9 @@ The permanently dark sections received fixed dark backgrounds. Other surfaces co
 
 Work was organised into feature branches and merged through pull requests.
 
-The catalog was split into ProductCatalog, ProductGrid and ProductCard. Shared cart and login state use Context providers. Pricing calculations are kept in cartPricing.ts.
+The catalog was split into ProductCatalog, ProductGrid and ProductCard. Shared cart and login state use Context providers. Pricing calculations are kept in utils/cartPricing.ts.
+
+Page components, shared components, Context providers and utility functions were separated into folders. Imports were updated and the project passed type checking, linting and a production build after the moves.
 
 ## What I would improve
 
@@ -168,25 +174,25 @@ I would also update documentation after each milestone and keep a debugging note
 ## AI assistance
 
 I used ChatGPT for code examples, explanations, debugging and Git guidance.
+
 It helped me connect shared state, forms, routes and pricing calculations.
+
 I applied the changes in VS Code and checked the results in the browser.
+
 I asked for revisions when the layout or behavior did not match the project.
+
 I chose the brand direction, text and visual style.
+
 TypeScript errors, browser behavior and Lighthouse results guided the corrections.
 
-## Remaining verification
+## Completion
 
-- Confirm direct opening and refresh of valid deployed routes.
-- Run the complete shopping flow on the live site.
-- Complete the flow in Chrome and Firefox.
-- Finish keyboard and API failure-state checks.
-- Recheck the map link's accessible name.
-- Record any remaining fixes and the final build output.
+CORE implementation and verification are complete.
+
+Login and checkout remain local simulations. No real authentication or payment processing is included.
 
 ## Later scope
 
 Orders, Profile, local review submission and related products remain outside the delivered scope.
 
 Other FULL items, including Formik/Yup login and route-level lazy loading, have not been completed.
-
-The merch showcase remains postponed. About and Fine Print have been delivered.
