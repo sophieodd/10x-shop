@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router'
 import AccountMenu from './AccountMenu'
 import HeaderSearch from './HeaderSearch'
 import MiniCart from './MiniCart'
+import ThemeToggle from './ThemeToggle'
 
 type HeaderProps = {
   cartCount: number
@@ -34,6 +35,7 @@ export default function Header({ cartCount }: HeaderProps) {
 
   const activePanel =
     openPanel?.locationKey === location.key ? openPanel.name : null
+
   const menuIsOpen = activePanel === 'navigation'
   const searchIsOpen = activePanel === 'search'
 
@@ -42,7 +44,9 @@ export default function Header({ cartCount }: HeaderProps) {
 
     if (activePanel === 'search') {
       const searchInput =
-        searchPanelRef.current?.querySelector<HTMLInputElement>('input[type="search"]')
+        searchPanelRef.current?.querySelector<HTMLInputElement>(
+          'input[type="search"]',
+        )
 
       searchInput?.focus({ preventScroll: true })
     }
@@ -63,7 +67,10 @@ export default function Header({ cartCount }: HeaderProps) {
       if (event.key !== 'Escape') return
 
       setOpenPanel(null)
-      const trigger = activePanel === 'search' ? searchButtonRef : menuButtonRef
+
+      const trigger =
+        activePanel === 'search' ? searchButtonRef : menuButtonRef
+
       trigger.current?.focus()
     }
 
@@ -96,7 +103,7 @@ export default function Header({ cartCount }: HeaderProps) {
         ref={headerRef}
         className="sticky top-0 z-50 border-b-2 border-[var(--color-lavender)] bg-[var(--color-surface)]"
       >
-        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-2 px-4 py-3 sm:px-5 sm:py-4">
           <Link
             to="/"
             onClick={closePanel}
@@ -112,15 +119,25 @@ export default function Header({ cartCount }: HeaderProps) {
             aria-label="Main navigation"
             className="ml-auto hidden items-center gap-6 md:flex"
           >
-            <NavLink to="/" end onClick={closePanel} className={navigationClassName}>
+            <NavLink
+              to="/"
+              end
+              onClick={closePanel}
+              className={navigationClassName}
+            >
               Shop
             </NavLink>
-            <NavLink to="/catalog" onClick={closePanel} className={navigationClassName}>
+
+            <NavLink
+              to="/catalog"
+              onClick={closePanel}
+              className={navigationClassName}
+            >
               Catalog
             </NavLink>
           </nav>
 
-          <div className="ml-auto flex items-center gap-0 md:ml-4 md:gap-2">
+          <div className="ml-auto flex items-center md:ml-4 md:gap-2">
             <button
               ref={searchButtonRef}
               type="button"
@@ -209,6 +226,43 @@ export default function Header({ cartCount }: HeaderProps) {
               </svg>
             </button>
           </div>
+
+          <div
+            id="mobile-navigation"
+            className={`w-full border-t border-[var(--color-border)] pt-3 md:ml-2 md:flex md:w-auto md:items-center md:border-0 md:pt-0 ${
+              menuIsOpen ? 'block' : 'hidden'
+            }`}
+          >
+            <nav
+              aria-label="Mobile navigation"
+              className="flex flex-col gap-1 md:hidden"
+            >
+              <NavLink
+                to="/"
+                end
+                onClick={closePanel}
+                className={navigationClassName}
+              >
+                Shop
+              </NavLink>
+
+              <NavLink
+                to="/catalog"
+                onClick={closePanel}
+                className={navigationClassName}
+              >
+                Catalog
+              </NavLink>
+            </nav>
+
+            <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] px-2 pt-3 md:mt-0 md:border-0 md:p-0">
+              <span className="text-sm text-[var(--color-muted)] md:hidden">
+                Appearance
+              </span>
+
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
 
         <div
@@ -223,31 +277,6 @@ export default function Header({ cartCount }: HeaderProps) {
             </div>
           </div>
         </div>
-
-        <nav
-          id="mobile-navigation"
-          aria-label="Mobile navigation"
-          hidden={!menuIsOpen}
-          className="absolute inset-x-0 top-full border-b-2 border-[var(--color-lavender)] bg-[var(--color-surface)] px-4 py-3 shadow-lg md:hidden"
-        >
-          <div className="flex flex-col gap-1">
-            <NavLink
-              to="/"
-              end
-              onClick={closePanel}
-              className={navigationClassName}
-            >
-              Shop
-            </NavLink>
-            <NavLink
-              to="/catalog"
-              onClick={closePanel}
-              className={navigationClassName}
-            >
-              Catalog
-            </NavLink>
-          </div>
-        </nav>
       </header>
     </>
   )
