@@ -6,7 +6,7 @@ These issues came up while building and testing CTRL+ME.
 
 ### Problem
 
-After opening a product and selecting Back to the catalog, the filters and page number were restored but the screen showed the hero.
+After selecting Back to the catalog, the filters and page number were restored but the screen showed the hero.
 
 ### Steps to reproduce
 
@@ -16,17 +16,17 @@ After opening a product and selecting Back to the catalog, the filters and page 
 4. Select Back to the catalog.
 5. Check the URL and scroll position.
 
-### Investigation
+### Investigation and cause
 
-I tested the navigation in the browser and reviewed the return link and catalog effect in VS Code.
+I reproduced the issue in the browser and reviewed the return link and catalog effect in VS Code.
 
-The URL state was restored. The catalog section still needed an explicit scroll action after React rendered it.
+The URL parameters were restored correctly. The catalog section needed a separate scroll action after React rendered it.
 
 ### Fix
 
-Added a scroll effect using the catalog section ref and requestAnimationFrame. The section used scroll margin to leave room for the sticky header.
+Added a scroll effect using the catalog section ref and requestAnimationFrame. Scroll margin left room for the sticky header.
 
-When the catalog later received its own route, the return link and scroll handling were updated for /catalog.
+When the catalog received its own route, the return link and scroll handling were updated for /catalog.
 
 ### Result
 
@@ -36,9 +36,10 @@ Returning from a product showed the catalog with the saved filters and page.
 
 Restoring URL parameters and restoring scroll position are separate parts of navigation.
 
-[Initial fix](https://github.com/sophieodd/10x-shop/commit/e72e15c)
+### Commits
 
-[Separate catalog route](https://github.com/sophieodd/10x-shop/commit/e624c1b)
+- [Initial scroll fix](https://github.com/sophieodd/10x-shop/commit/e72e15c)
+- [Separate catalog route](https://github.com/sophieodd/10x-shop/commit/e624c1b)
 
 ## 2. Product pages opened near the bottom
 
@@ -52,11 +53,11 @@ Opening a product from further down the catalog kept the previous scroll positio
 2. Open a product.
 3. Check where the product page starts.
 
-### Investigation
+### Investigation and cause
 
 I reproduced the issue in the browser and reviewed ProductDetails.tsx in VS Code.
 
-The product route loaded successfully but the page did not reset its scroll position.
+The product route loaded successfully but nothing reset the scroll position when the product changed.
 
 ### Fix
 
@@ -68,9 +69,11 @@ Product pages opened at the top. Returning to the catalog still restored the cat
 
 ### What I learned
 
-SPA navigation can keep the previous page's scroll position. Each navigation flow needs the appropriate scroll behavior.
+SPA navigation can keep the previous page's scroll position. Different navigation flows need different scroll behavior.
 
-[Fix](https://github.com/sophieodd/10x-shop/commit/e72e15c)
+### Commit
+
+- [Product scroll fix](https://github.com/sophieodd/10x-shop/commit/e72e15c)
 
 ## 3. Main navigation disappeared on mobile
 
@@ -81,14 +84,14 @@ The header hid Shop and Catalog on smaller screens. There was no mobile menu to 
 ### Steps to reproduce
 
 1. Open the shop at a narrow browser width.
-2. Look for the Shop and Catalog links in the header.
+2. Look for the Shop and Catalog links.
 3. Try navigating between those pages.
 
-### Investigation
+### Investigation and cause
 
 I reviewed Header.tsx in VS Code. The navigation used hidden with a responsive display class, so the links disappeared below the breakpoint.
 
-A second-row layout was tried first. It made the mobile header feel crowded.
+A second-row layout was tried first but made the mobile header feel crowded.
 
 ### Fix
 
@@ -98,10 +101,12 @@ The menu closes after selecting a link, clicking outside or pressing Escape. Sho
 
 ### Result
 
-Both navigation links became available on mobile through the menu.
+Both navigation links became available through the mobile menu.
 
 ### What I learned
 
-Hiding desktop navigation needs a usable replacement on small screens. Mobile navigation also needs keyboard controls and a clear open state.
+Hiding desktop navigation needs a usable replacement on smaller screens. The replacement also needs keyboard controls and a clear open state.
 
-[Fix](https://github.com/sophieodd/10x-shop/commit/e624c1b)
+### Commit
+
+- [Mobile navigation and routes](https://github.com/sophieodd/10x-shop/commit/e624c1b)
