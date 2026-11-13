@@ -103,8 +103,8 @@ const archives: ArchiveEntry[] = [
 
 const characters = [
   {
-    title: 'THE SWEET MENTOR',
-    text: 'Mentor No. 3. Adorable human being. A short chapter, but a lovely one.',
+    title: 'THE THIRD MENTOR',
+    text: 'Mentor No. 3. We only crossed paths briefly. A short chapter, but a lovely one.',
   },
   {
     title: 'THE UNSEEN LECTURER',
@@ -119,12 +119,24 @@ const characters = [
     text: 'Lecturer No. 4. The youngest of the lecturer crew, with presentations that deserved their own applause.',
   },
   {
-    title: 'THE COMPLIMENT INCIDENT',
-    text: 'Lecturer No. 5. One compliment directed at a colleague. An unexpected reaction. Another entry in the archives.',
+    title: 'THE PRESENTATION REVIEW BOARD',
+    text: ' Lecturer No. 5. I complimented someone’s presentation. Apparently, that needed explaining. Quality control never sleeps.',
+  },
+  {
+    title: 'THE ORIGINAL SPARK',
+    text: ' Interpersonal Communications. Psychology. Human behaviour. We were given a chance to practise. And, well… we did.',
+  },
+  {
+    title: 'THE INCIDENT DESK',
+    text: 'Administration. They witnessed the incidents, received the reports and occasionally became part of the story. No official records can fully explain what happened.',
   },
   {
     title: 'THE OBSERVERS',
-    text: 'Administration. Watching the drama unfold, occasionally stepping into the storyline and witnessing events that probably weren’t in the original schedule.',
+    text: 'Classmates.  Some stayed out of the drama, but never out of the loop. Always ready for the latest episode, asking for updates and occasionally requesting a little more drama. Can’t blame them. We did provide quality entertainment.',
+  },
+  {
+    title: 'THE BOARD OF UNOFFICIAL ADVISORS',
+    text: 'Alumni. Three gentlemen who gave us their time and advice from day one. We outdid every previous graduating class in drama.  We’ll take the win. ',
   },
 ]
 
