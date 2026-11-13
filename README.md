@@ -54,46 +54,48 @@ The CRM is a separate application. Linking to it does not share shop accounts, s
 
 ## Main project files
 
-```text
 public/
   about/
   favicon.svg
+  icons.svg
   robots.txt
 src/
   components/
-    AboutPage.tsx
     AccountMenu.tsx
-    CartPage.tsx
-    CheckoutPage.tsx
     ErrorBoundary.tsx
-    FinePrintPage.tsx
     Footer.tsx
     Header.tsx
     HeaderSearch.tsx
     Hero.tsx
     LoginPage.tsx
     MiniCart.tsx
-    NotFoundPage.tsx
     ProductCard.tsx
     ProductCatalog.tsx
-    ProductDetails.tsx
     ProductGrid.tsx
     ThemeToggle.tsx
+  context/
+    AuthProvider.tsx
+    CartProvider.tsx
+    auth.ts
+    cart.ts
   hooks/
     useDebounce.ts
+  pages/
+    AboutPage.tsx
+    CartPage.tsx
+    CheckoutPage.tsx
+    FinePrintPage.tsx
+    NotFoundPage.tsx
+    ProductDetails.tsx
+  utils/
+    cartPricing.ts
   App.tsx
-  AuthProvider.tsx
-  CartProvider.tsx
-  auth.ts
-  cart.ts
-  cartPricing.ts
   index.css
   main.tsx
 docs/
   lighthouse/
     before.html
     after.html
-```
 
 ## Run locally
 

@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { useAuth } from '../auth'
+import { useAuth } from '../context/auth'
 
 type LoginPageProps = {
   onSuccess?: () => void

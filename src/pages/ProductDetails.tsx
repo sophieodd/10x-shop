@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-import { useCart } from '../cart'
-import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
+import { useCart } from '../context/cart'
+import { formatPrice, getDiscountedUnitPriceCents } from '../utils/cartPricing'
 import NotFoundPage from './NotFoundPage'
-import ProductGrid from './ProductGrid'
-import type { CatalogProduct } from './ProductCard'
+import ProductGrid from '../components/ProductGrid'
+import type { CatalogProduct } from '../components/ProductCard'
 
 type ProductReview = {
   rating: number

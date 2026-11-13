@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
-import { useCart, type CartProduct } from '../cart'
-import { formatPrice, getDiscountedUnitPriceCents } from '../cartPricing'
+import { useCart, type CartProduct } from '../context/cart'
+import { formatPrice, getDiscountedUnitPriceCents } from '../utils/cartPricing'
 
 export type CatalogProduct = CartProduct & {
   category: string
