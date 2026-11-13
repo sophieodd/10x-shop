@@ -97,7 +97,7 @@ export default function Hero() {
             href="https://maps.app.goo.gl/uQm5kMGApayCddvv7"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="View this Batumi Beach location on Google Maps"
+            aria-label="41°39′24″ N 41°38′21″ E — View this Batumi Beach location on Google Maps"
             className="mt-4 block text-right font-[var(--font-tech)] text-[9px] leading-relaxed text-white/40 hover:text-[var(--color-blue)]"
           >
             41°39′24″ N
