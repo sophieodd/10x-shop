@@ -1,8 +1,8 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation } from 'react-router'
-import { useAuth } from '../auth'
-import { useCart } from '../cart'
-import { formatPrice, getCartTotals } from '../cartPricing'
+import { useAuth } from '../context/auth'
+import { useCart } from '../context/cart'
+import { formatPrice, getCartTotals } from '../utils/cartPricing'
 
 const fields = [
   { name: 'fullName', label: 'Full name', autoComplete: 'name' },

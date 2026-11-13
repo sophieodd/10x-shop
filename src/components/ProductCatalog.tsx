@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
-import { getDiscountedUnitPriceCents } from '../cartPricing'
+import { getDiscountedUnitPriceCents } from '../utils/cartPricing'
 import { useDebounce } from '../hooks/useDebounce'
 import type { CatalogProduct } from './ProductCard'
 import ProductGrid from './ProductGrid'

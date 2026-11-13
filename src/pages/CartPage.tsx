@@ -1,12 +1,12 @@
 import { useLayoutEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
-import { useCart } from '../cart'
+import { useCart } from '../context/cart'
 import {
   FREE_SHIPPING_THRESHOLD_CENTS,
   formatPrice,
   getCartTotals,
   getDiscountedUnitPriceCents,
-} from '../cartPricing'
+} from '../utils/cartPricing'
 
 const quantityButtonClass =
   'min-h-11 min-w-11 border border-[var(--color-border)] disabled:opacity-40'

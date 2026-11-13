@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useAuth } from '../auth'
+import { useAuth } from '../context/auth'
 import LoginPage from './LoginPage'
 
 export default function AccountMenu() {

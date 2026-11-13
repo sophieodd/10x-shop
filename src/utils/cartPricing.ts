@@ -1,4 +1,4 @@
-import type { CartItem } from './cart'
+import type { CartItem } from '../context/cart'
 
 export const FREE_SHIPPING_THRESHOLD_CENTS = 10_000
 const SHIPPING_COST_CENTS = 1_000

@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router'
-import { useCart } from '../cart'
+import { useCart } from '../context/cart'
 import {
   formatPrice,
   getCartTotals,
   getDiscountedUnitPriceCents,
-} from '../cartPricing'
+} from '../utils/cartPricing'
 
 export default function MiniCart() {
   const { items } = useCart()

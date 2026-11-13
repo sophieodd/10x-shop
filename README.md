@@ -4,73 +4,102 @@ My front-end diploma project for 10X. Built with React, TypeScript and Tailwind 
 
 CTRL+ME brings together my interest in design, tech and questionable shopping decisions. The shop uses electric blue, magenta and lavender with a little attitude.
 
+## Live demo
+
+[Visit CTRL+ME](https://sophies-10x-shop.vercel.app/)
+
 ## Features
 
-- Shop homepage and a separate catalog page
-- Product search, category filters, sorting and pagination
-- Filters and page numbers saved in the URL
-- Product details with an image gallery and customer reviews
-- Product discounts and stock limits
-- Shopping cart with quantity controls and item removal
-- Cart and promo code saved between visits
+### Core shopping flow
+
+- Product catalog and product details
+- Quantity selection and stock limits
+- Shared shopping cart with quantity controls and item removal
+- Local login with form validation
+- Checkout access checks for guests
+- Validated delivery form and local order confirmation
+- Responsive layouts and mobile navigation
+- Loading, error and empty states
+- Error Boundary and a custom 404 page
+
+### Additional features
+
+- Separate Shop and Catalog pages
+- Search, category filters, price filtering and sorting
+- Pagination with filters and page numbers stored in the URL
+- Header search panel
+- Product image gallery and reviews from DummyJSON
+- Product discounts
+- Cart and promo code persistence
 - Mini cart preview and cart notifications
 - Promo code `10X10` for an extra 10% off
 - Free shipping from $100 after discounts and $10 shipping below that amount
-- Local login with form validation
-- Checkout with delivery details and order confirmation
-- Mobile navigation and responsive layouts
-- Loading skeletons, error messages and an Error Boundary
+- Light and dark themes with a saved preference
+- About and Fine Print pages
+- Administrator link to the separate CRM project
 
 ## Technology
 
-- React
-- TypeScript with strict checking
-- React Router
-- Tailwind CSS v4
-- Vite
-- DummyJSON
+React, TypeScript with strict checking, React Router, Tailwind CSS v4, Vite and DummyJSON.
 
 ## How it works
 
-`ProductCatalog` fetches products and manages search, filters and pagination. `ProductGrid` arranges the results and `ProductCard` displays each product.
+ProductCatalog fetches products and manages search, filters and pagination. ProductGrid arranges the results and ProductCard displays each product.
 
-The cart uses React Context so the header, product pages and cart page share the same state. Cart data is saved in localStorage. Pricing calculations are shared through `cartPricing.ts`.
+The cart uses React Context so the header, product pages and cart page share the same state. Cart data is saved in localStorage. Pricing calculations are shared through cartPricing.ts.
 
 Login uses a local React Context. Checkout validates the delivery form, displays a confirmation and clears the cart.
 
-## Project structure
+The CRM is a separate application. Linking to it does not share shop accounts, sessions or orders.
 
-```text
+## Main project files
+
+public/
+  about/
+  favicon.svg
+  icons.svg
+  robots.txt
 src/
   components/
     AccountMenu.tsx
-    CartPage.tsx
-    CheckoutPage.tsx
     ErrorBoundary.tsx
     Footer.tsx
     Header.tsx
+    HeaderSearch.tsx
     Hero.tsx
     LoginPage.tsx
     MiniCart.tsx
     ProductCard.tsx
     ProductCatalog.tsx
-    ProductDetails.tsx
     ProductGrid.tsx
+    ThemeToggle.tsx
+  context/
+    AuthProvider.tsx
+    CartProvider.tsx
+    auth.ts
+    cart.ts
   hooks/
     useDebounce.ts
+  pages/
+    AboutPage.tsx
+    CartPage.tsx
+    CheckoutPage.tsx
+    FinePrintPage.tsx
+    NotFoundPage.tsx
+    ProductDetails.tsx
+  utils/
+    cartPricing.ts
   App.tsx
-  AuthProvider.tsx
-  CartProvider.tsx
-  auth.ts
-  cart.ts
-  cartPricing.ts
   index.css
   main.tsx
-```
+docs/
+  lighthouse/
+    before.html
+    after.html
 
 ## Run locally
 
-Install the dependencies:
+Install dependencies:
 
 ```bash
 npm install
@@ -89,7 +118,7 @@ Open the local address shown in the terminal.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Starts the development server |
-| `npm run typecheck` | Checks the app and Vite configuration with TypeScript |
+| `npm run typecheck` | Checks TypeScript |
 | `npm run lint` | Checks the code with ESLint |
 | `npm run build` | Checks types and creates a production build |
 | `npm run preview` | Serves the production build locally |
@@ -99,24 +128,40 @@ Open the local address shown in the terminal.
 1. Add a product to the cart.
 2. Check the acknowledgment box.
 3. Select Proceed to checkout.
-4. Log in with any non-empty username and a password of at least six characters.
+4. Log in using the demo values below.
 5. Enter valid delivery details.
 6. Place the order.
 
-For example, use `sophie` and `demo123`.
+Demo username: `sophie`
 
-Login and checkout are local simulations. No credentials are sent to an authentication service and no payment is taken.
+Demo password: `demo123`
+
+Login and checkout are local simulations. No credentials are sent to an authentication service and no payment is taken. Use made-up details.
+
+## Quality checks
+
+Type checking, linting and production builds have passed during development. Responsive checks have been completed.
+
+The deployed homepage was tested with Lighthouse on November 13, 2026 using mobile emulation and Slow 4G throttling.
+
+| Category | Score |
+| --- | --- |
+| Performance | 97 |
+| Accessibility | 100 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+Reports are saved in [docs/lighthouse](docs/lighthouse/). These scores describe the tested homepage and do not replace manual checks across the application.
+
+See [REPORT.md](REPORT.md) for completed checks and remaining verification.
 
 ## Current limitations
 
-- Products and reviews come from DummyJSON.
-- Order confirmation lasts for the current visit. Order history is not implemented yet.
-- Orders and Profile pages are planned for the FULL stage.
-- Responsive and browser testing is still in progress.
-
-## Live demo
-
-Deployment is pending.
+- Product data and existing reviews come from DummyJSON.
+- Local data belongs to the current browser and is not synced between devices.
+- Order confirmation uses React state and is lost after a page reload.
+- Order history, Profile, local review submission and related products are not implemented.
+- Final cross-browser and complete live checkout verification remain to be recorded.
 
 ## Credits
 
