@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import AccountMenu from './AccountMenu'
+import HeaderSearch from './HeaderSearch'
 import MiniCart from './MiniCart'
 
 type HeaderProps = {
   cartCount: number
+}
+
+type OpenPanel = {
+  name: 'navigation' | 'search'
+  locationKey: string
 }
 
 const controlClassName =
@@ -22,27 +28,43 @@ export default function Header({ cartCount }: HeaderProps) {
   const location = useLocation()
   const headerRef = useRef<HTMLElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
-  const [openLocationKey, setOpenLocationKey] = useState<string | null>(null)
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
+  const searchPanelRef = useRef<HTMLDivElement>(null)
+  const [openPanel, setOpenPanel] = useState<OpenPanel | null>(null)
 
-  const menuIsOpen = openLocationKey === location.key
+  const activePanel =
+    openPanel?.locationKey === location.key ? openPanel.name : null
+  const menuIsOpen = activePanel === 'navigation'
+  const searchIsOpen = activePanel === 'search'
 
   useEffect(() => {
-    if (!menuIsOpen) return
+    if (!activePanel) return
+
+    if (activePanel === 'search') {
+      const searchInput =
+        searchPanelRef.current?.querySelector<HTMLInputElement>('input[type="search"]')
+
+      searchInput?.focus({ preventScroll: true })
+    }
 
     function handleOutsideClick(event: PointerEvent) {
-      if (
-        event.target instanceof Node &&
-        !headerRef.current?.contains(event.target)
-      ) {
-        setOpenLocationKey(null)
-      }
+      if (!(event.target instanceof Node)) return
+
+      const clickedInside =
+        activePanel === 'search'
+          ? searchPanelRef.current?.contains(event.target) ||
+            searchButtonRef.current?.contains(event.target)
+          : headerRef.current?.contains(event.target)
+
+      if (!clickedInside) setOpenPanel(null)
     }
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setOpenLocationKey(null)
-        menuButtonRef.current?.focus()
-      }
+      if (event.key !== 'Escape') return
+
+      setOpenPanel(null)
+      const trigger = activePanel === 'search' ? searchButtonRef : menuButtonRef
+      trigger.current?.focus()
     }
 
     document.addEventListener('pointerdown', handleOutsideClick)
@@ -52,10 +74,16 @@ export default function Header({ cartCount }: HeaderProps) {
       document.removeEventListener('pointerdown', handleOutsideClick)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [menuIsOpen])
+  }, [activePanel])
 
-  function closeMenu() {
-    setOpenLocationKey(null)
+  function closePanel() {
+    setOpenPanel(null)
+  }
+
+  function togglePanel(name: OpenPanel['name']) {
+    setOpenPanel(
+      activePanel === name ? null : { name, locationKey: location.key },
+    )
   }
 
   return (
@@ -71,7 +99,7 @@ export default function Header({ cartCount }: HeaderProps) {
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:px-5 sm:py-4">
           <Link
             to="/"
-            onClick={closeMenu}
+            onClick={closePanel}
             aria-label="Ctrl+Me home"
             className="inline-flex min-h-11 shrink-0 items-center font-[var(--font-display)] text-2xl font-bold tracking-[-0.08em] text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)]"
           >
@@ -84,19 +112,22 @@ export default function Header({ cartCount }: HeaderProps) {
             aria-label="Main navigation"
             className="ml-auto hidden items-center gap-6 md:flex"
           >
-            <NavLink to="/" end className={navigationClassName}>
+            <NavLink to="/" end onClick={closePanel} className={navigationClassName}>
               Shop
             </NavLink>
-            <NavLink to="/catalog" className={navigationClassName}>
+            <NavLink to="/catalog" onClick={closePanel} className={navigationClassName}>
               Catalog
             </NavLink>
           </nav>
 
           <div className="ml-auto flex items-center gap-0 md:ml-4 md:gap-2">
-            <Link
-              to="/catalog#catalog-search"
-              onClick={closeMenu}
-              aria-label="Search products"
+            <button
+              ref={searchButtonRef}
+              type="button"
+              aria-label={searchIsOpen ? 'Close search' : 'Search products'}
+              aria-expanded={searchIsOpen}
+              aria-controls="header-search-panel"
+              onClick={() => togglePanel('search')}
               className={controlClassName}
             >
               <svg
@@ -112,14 +143,14 @@ export default function Header({ cartCount }: HeaderProps) {
                 <circle cx="10.8" cy="10.8" r="6.3" />
                 <path d="m16 16 4.5 4.5" />
               </svg>
-            </Link>
+            </button>
 
             <AccountMenu />
 
             <div className="group relative">
               <Link
                 to="/cart"
-                onClick={closeMenu}
+                onClick={closePanel}
                 aria-label={`Cart, ${cartCount} ${
                   cartCount === 1 ? 'item' : 'items'
                 }`}
@@ -158,9 +189,7 @@ export default function Header({ cartCount }: HeaderProps) {
               aria-label={menuIsOpen ? 'Close navigation' : 'Open navigation'}
               aria-expanded={menuIsOpen}
               aria-controls="mobile-navigation"
-              onClick={() =>
-                setOpenLocationKey(menuIsOpen ? null : location.key)
-              }
+              onClick={() => togglePanel('navigation')}
               className={`${controlClassName} md:hidden`}
             >
               <svg
@@ -182,6 +211,19 @@ export default function Header({ cartCount }: HeaderProps) {
           </div>
         </div>
 
+        <div
+          ref={searchPanelRef}
+          id="header-search-panel"
+          hidden={!searchIsOpen}
+          className="absolute inset-x-0 top-full border-b-2 border-[var(--color-lavender)] bg-[var(--color-surface)] px-4 py-3 shadow-lg"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="md:ml-auto md:max-w-md">
+              {searchIsOpen && <HeaderSearch />}
+            </div>
+          </div>
+        </div>
+
         <nav
           id="mobile-navigation"
           aria-label="Mobile navigation"
@@ -192,14 +234,14 @@ export default function Header({ cartCount }: HeaderProps) {
             <NavLink
               to="/"
               end
-              onClick={closeMenu}
+              onClick={closePanel}
               className={navigationClassName}
             >
               Shop
             </NavLink>
             <NavLink
               to="/catalog"
-              onClick={closeMenu}
+              onClick={closePanel}
               className={navigationClassName}
             >
               Catalog

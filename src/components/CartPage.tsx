@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useLayoutEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useCart } from '../cart'
 import {
@@ -30,6 +30,10 @@ export default function CartPage() {
   )
   const checkoutMessage =
     typeof state?.checkoutMessage === 'string' ? state.checkoutMessage : null
+
+  useLayoutEffect(() => {
+  window.scrollTo({ top: 0, behavior: 'instant' })
+}, [])
 
   function applyPromo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
