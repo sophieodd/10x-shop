@@ -9,6 +9,7 @@ type PromoCode = '10X10' | null
 type CartState = {
   items: CartItem[]
   promoCode: PromoCode
+  acknowledgedTaste: boolean
   toast: { count: number } | null
 }
 
@@ -28,9 +29,19 @@ function loadCart(): CartState {
         ? '10X10'
         : null
 
-    return { items, promoCode, toast: null }
+    return {
+      items,
+      promoCode,
+      acknowledgedTaste: false,
+      toast: null,
+    }
   } catch {
-    return { items: [], promoCode: null, toast: null }
+    return {
+      items: [],
+      promoCode: null,
+      acknowledgedTaste: false,
+      toast: null,
+    }
   }
 }
 
@@ -45,7 +56,7 @@ function getCartMessage(count: number): string {
 
 export default function CartProvider({ children }: CartProviderProps) {
   const [cart, setCart] = useState<CartState>(loadCart)
-  const { items, promoCode, toast } = cart
+  const { items, promoCode, acknowledgedTaste, toast } = cart
 
   useEffect(() => {
     try {
@@ -116,7 +127,12 @@ export default function CartProvider({ children }: CartProviderProps) {
       const nextItems = current.items.filter((item) => item.id !== id)
 
       if (nextItems.length === 0) {
-        return { items: [], promoCode: null, toast: null }
+        return {
+          items: [],
+          promoCode: null,
+          acknowledgedTaste: false,
+          toast: null,
+        }
       }
 
       return { ...current, items: nextItems, toast: null }
@@ -124,7 +140,12 @@ export default function CartProvider({ children }: CartProviderProps) {
   }
 
   function clearCart() {
-    setCart({ items: [], promoCode: null, toast: null })
+    setCart({
+      items: [],
+      promoCode: null,
+      acknowledgedTaste: false,
+      toast: null,
+    })
   }
 
   function setPromoCode(code: PromoCode) {
@@ -132,6 +153,10 @@ export default function CartProvider({ children }: CartProviderProps) {
       ...current,
       promoCode: current.items.length > 0 ? code : null,
     }))
+  }
+
+  function setAcknowledgedTaste(acknowledgedTaste: boolean) {
+    setCart((current) => ({ ...current, acknowledgedTaste }))
   }
 
   return (
@@ -144,6 +169,8 @@ export default function CartProvider({ children }: CartProviderProps) {
         clearCart,
         promoCode,
         setPromoCode,
+        acknowledgedTaste,
+        setAcknowledgedTaste,
       }}
     >
       {children}

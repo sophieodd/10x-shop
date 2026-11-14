@@ -15,13 +15,20 @@ const checkoutButtonClass =
   'mt-4 block w-full bg-[var(--color-magenta)] px-4 py-3 text-center font-bold text-white'
 
 export default function CartPage() {
-  const { items, setQuantity, removeItem, clearCart, promoCode, setPromoCode } =
-    useCart()
+  const {
+    items,
+    setQuantity,
+    removeItem,
+    clearCart,
+    promoCode,
+    setPromoCode,
+    acknowledgedTaste,
+    setAcknowledgedTaste,
+  } = useCart()
   const { state } = useLocation()
 
   const [promoInput, setPromoInput] = useState('')
   const [promoError, setPromoError] = useState('')
-  const [acknowledged, setAcknowledged] = useState(false)
 
   const { subtotal, discount, shipping, total } = getCartTotals(items, promoCode)
   const amountUntilFreeShipping = Math.max(
@@ -32,8 +39,8 @@ export default function CartPage() {
     typeof state?.checkoutMessage === 'string' ? state.checkoutMessage : null
 
   useLayoutEffect(() => {
-  window.scrollTo({ top: 0, behavior: 'instant' })
-}, [])
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
 
   function applyPromo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -48,16 +55,10 @@ export default function CartPage() {
     setPromoError('')
   }
 
-  function handleRemove(id: number) {
-    if (items.length === 1) setAcknowledged(false)
-    removeItem(id)
-  }
-
   function handleClear() {
-    if (!window.confirm('Clear all items from your cart?')) return
+    if (!window.confirm('Clear the cart? This cannot be undone.')) return
 
     clearCart()
-    setAcknowledged(false)
     setPromoInput('')
     setPromoError('')
   }
@@ -162,7 +163,7 @@ export default function CartPage() {
 
                           <button
                             type="button"
-                            onClick={() => handleRemove(item.id)}
+                            onClick={() => removeItem(item.id)}
                             aria-label={`Remove ${item.title} from cart`}
                             className="min-h-11 px-2 text-sm underline hover:text-[var(--color-magenta)]"
                           >
@@ -248,7 +249,7 @@ export default function CartPage() {
                     <p
                       id="cart-promo-error"
                       role="alert"
-                      className="mt-2 text-sm text-red-700"
+                      className="mt-2 text-sm text-red-700 dark:text-red-300"
                     >
                       {promoError}
                     </p>
@@ -290,8 +291,10 @@ export default function CartPage() {
               <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm">
                 <input
                   type="checkbox"
-                  checked={acknowledged}
-                  onChange={(event) => setAcknowledged(event.target.checked)}
+                  checked={acknowledgedTaste}
+                  onChange={(event) =>
+                    setAcknowledgedTaste(event.target.checked)
+                  }
                   className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-magenta)]"
                 />
                 <span>
@@ -299,10 +302,9 @@ export default function CartPage() {
                 </span>
               </label>
 
-              {acknowledged ? (
+              {acknowledgedTaste ? (
                 <Link
                   to="/checkout"
-                  state={{ acknowledgedTaste: true }}
                   className={`${checkoutButtonClass} hover:brightness-110`}
                 >
                   Proceed to checkout

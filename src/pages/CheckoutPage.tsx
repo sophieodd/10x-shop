@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { useAuth } from '../context/auth'
 import { useCart } from '../context/cart'
 import { formatPrice, getCartTotals } from '../utils/cartPricing'
@@ -22,8 +22,13 @@ type OrderConfirmation = {
 
 export default function CheckoutPage() {
   const { user } = useAuth()
-  const { items, promoCode, clearCart } = useCart()
-  const { state } = useLocation()
+  const {
+    items,
+    promoCode,
+    clearCart,
+    acknowledgedTaste,
+    setAcknowledgedTaste,
+  } = useCart()
   const [confirmation, setConfirmation] =
     useState<OrderConfirmation | null>(null)
 
@@ -57,6 +62,16 @@ export default function CheckoutPage() {
     )
   }
 
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: '/checkout' }}
+      />
+    )
+  }
+
   if (items.length === 0) {
     return (
       <Navigate
@@ -67,28 +82,36 @@ export default function CheckoutPage() {
     )
   }
 
-  if (!user) {
+  if (!acknowledgedTaste) {
     return (
-      <Navigate
-        to="/login"
-        replace
-        state={{
-          from: '/checkout',
-          acknowledgedTaste: state?.acknowledgedTaste === true,
-        }}
-      />
-    )
-  }
+      <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
+        <div className="mx-auto max-w-xl bg-[var(--color-surface)] p-6 sm:p-8">
+          <h1 className="font-[var(--font-display)] text-3xl font-bold">
+            One quick acknowledgment
+          </h1>
 
-  if (state?.acknowledgedTaste !== true) {
-    return (
-      <Navigate
-        to="/cart"
-        replace
-        state={{
-          checkoutMessage: 'Check the acknowledgment box to continue.',
-        }}
-      />
+          <label className="mt-6 flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={acknowledgedTaste}
+              onChange={(event) =>
+                setAcknowledgedTaste(event.target.checked)
+              }
+              className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-magenta)]"
+            />
+            <span>
+              I acknowledge that I have questionable taste and wish to proceed.
+            </span>
+          </label>
+
+          <Link
+            to="/cart"
+            className="mt-6 inline-block font-semibold text-[var(--color-blue)] underline"
+          >
+            Back to cart
+          </Link>
+        </div>
+      </main>
     )
   }
 
@@ -134,16 +157,16 @@ function CheckoutForm({ totals, onPlaceOrder }: CheckoutFormProps) {
     const nextErrors: CheckoutErrors = {}
 
     if (trimmedValues.fullName.length < 3) {
-      nextErrors.fullName = 'Full name must be at least 3 characters.'
+      nextErrors.fullName = 'Full name must be at least 3 characters'
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValues.email)) {
-      nextErrors.email = 'Please enter a valid email address.'
+      nextErrors.email = 'Please enter a valid email address'
     }
     if (trimmedValues.address.length < 5) {
-      nextErrors.address = 'Address must be at least 5 characters.'
+      nextErrors.address = 'Address must be at least 5 characters'
     }
     if (!trimmedValues.city) {
-      nextErrors.city = 'City is required.'
+      nextErrors.city = 'City is required'
     }
 
     setErrors(nextErrors)
@@ -201,7 +224,7 @@ function CheckoutForm({ totals, onPlaceOrder }: CheckoutFormProps) {
                   <p
                     id={`checkout-${name}-error`}
                     role="alert"
-                    className="mt-1 text-sm text-red-700"
+                    className="mt-1 text-sm text-red-700 dark:text-red-300"
                   >
                     {errors[name]}
                   </p>

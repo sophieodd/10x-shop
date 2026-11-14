@@ -21,6 +21,8 @@ type CartContextValue = {
   clearCart: () => void
   promoCode: '10X10' | null
   setPromoCode: (code: '10X10' | null) => void
+  acknowledgedTaste: boolean
+  setAcknowledgedTaste: (acknowledged: boolean) => void
 }
 
 export const CartContext = createContext<CartContextValue | null>(null)
