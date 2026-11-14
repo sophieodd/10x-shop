@@ -56,6 +56,8 @@ export default function ProductCard({
           <img
             src={product.thumbnail}
             alt={product.title}
+            loading="lazy"
+            decoding="async"
             className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
           />
 
