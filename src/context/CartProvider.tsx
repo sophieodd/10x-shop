@@ -17,11 +17,46 @@ type CartProviderProps = {
   children: ReactNode
 }
 
+function isCartItem(value: unknown): value is CartItem {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const item = value as Record<string, unknown>
+
+  return (
+    typeof item.id === 'number' &&
+    Number.isSafeInteger(item.id) &&
+    item.id > 0 &&
+    typeof item.title === 'string' &&
+    item.title.trim().length > 0 &&
+    typeof item.price === 'number' &&
+    Number.isFinite(item.price) &&
+    item.price >= 0 &&
+    typeof item.thumbnail === 'string' &&
+    item.thumbnail.trim().length > 0 &&
+    typeof item.stock === 'number' &&
+    Number.isSafeInteger(item.stock) &&
+    item.stock >= 0 &&
+    typeof item.quantity === 'number' &&
+    Number.isSafeInteger(item.quantity) &&
+    item.quantity >= 1 &&
+    item.quantity <= item.stock &&
+    (item.discountPercentage === undefined ||
+      (typeof item.discountPercentage === 'number' &&
+        Number.isFinite(item.discountPercentage) &&
+        item.discountPercentage >= 0 &&
+        item.discountPercentage <= 100))
+  )
+}
+
 function loadCart(): CartState {
   try {
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
     const parsedItems: unknown = savedCart ? JSON.parse(savedCart) : []
-    const items = Array.isArray(parsedItems) ? (parsedItems as CartItem[]) : []
+    const items = Array.isArray(parsedItems)
+  ? parsedItems.filter(isCartItem)
+  : []
 
     const promoCode =
       items.length > 0 &&
