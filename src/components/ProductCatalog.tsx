@@ -20,6 +20,64 @@ type Category = {
   slug: string
   name: string
 }
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isCategoryList(value: unknown): value is Category[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (category) =>
+        isRecord(category) &&
+        typeof category.slug === 'string' &&
+        typeof category.name === 'string',
+    )
+  )
+}
+
+function isCatalogProduct(value: unknown): value is CatalogProduct {
+  if (!isRecord(value)) return false
+
+  return (
+    typeof value.id === 'number' &&
+    Number.isSafeInteger(value.id) &&
+    value.id > 0 &&
+    typeof value.title === 'string' &&
+    value.title.trim().length > 0 &&
+    typeof value.price === 'number' &&
+    Number.isFinite(value.price) &&
+    value.price >= 0 &&
+    typeof value.thumbnail === 'string' &&
+    value.thumbnail.trim().length > 0 &&
+    typeof value.stock === 'number' &&
+    Number.isSafeInteger(value.stock) &&
+    value.stock >= 0 &&
+    typeof value.category === 'string' &&
+    (value.brand === undefined || typeof value.brand === 'string') &&
+    (value.rating === undefined ||
+      (typeof value.rating === 'number' &&
+        Number.isFinite(value.rating) &&
+        value.rating >= 0 &&
+        value.rating <= 5)) &&
+    (value.discountPercentage === undefined ||
+      (typeof value.discountPercentage === 'number' &&
+        Number.isFinite(value.discountPercentage) &&
+        value.discountPercentage >= 0 &&
+        value.discountPercentage <= 100))
+  )
+}
+
+function isProductsResponse(value: unknown): value is ProductsResponse {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.products) &&
+    value.products.every(isCatalogProduct) &&
+    typeof value.total === 'number' &&
+    Number.isSafeInteger(value.total) &&
+    value.total >= 0
+  )
+}
 
 type SearchDraft = {
   locationKey: string
@@ -455,7 +513,12 @@ export default function ProductCatalog({
 
         if (!response.ok) throw new Error('Could not load categories')
 
-        const data: Category[] = await response.json()
+        const data: unknown = await response.json()
+        if (!isCategoryList(data)) {
+          throw new Error('Invalid category response')
+        }
+
+        if (!controller.signal.aborted) setCategories(data)
 
         if (!controller.signal.aborted) setCategories(data)
       } catch {
@@ -500,7 +563,11 @@ export default function ProductCatalog({
 
         if (!response.ok) throw new Error('Could not load products')
 
-        const data: ProductsResponse = await response.json()
+        const data: unknown = await response.json()
+        if (!isProductsResponse(data)) {
+          throw new Error('Invalid product response')
+        }
+
         nextResults = { requestUrl, status: 'success', data }
       } catch {
         nextResults = { requestUrl, status: 'error' }
