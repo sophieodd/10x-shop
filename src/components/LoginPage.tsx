@@ -35,13 +35,13 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     const nextErrors: LoginErrors = {}
 
     if (!username.trim()) {
-      nextErrors.username = 'Username is required.'
+      nextErrors.username = 'Username is required'
     }
 
     if (!password.trim()) {
-      nextErrors.password = 'Password is required.'
+      nextErrors.password = 'Password is required'
     } else if (password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters.'
+      nextErrors.password = 'Password must be at least 6 characters'
     }
 
     setErrors(nextErrors)
@@ -61,12 +61,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     }
 
     if (location.state?.from === '/checkout') {
-      navigate('/checkout', {
-        replace: true,
-        state: {
-          acknowledgedTaste: location.state?.acknowledgedTaste === true,
-        },
-      })
+      navigate('/checkout', { replace: true })
       return
     }
 
@@ -82,7 +77,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       }
     >
       <div className="mx-auto max-w-md bg-[var(--color-surface)] p-6 sm:p-8">
-        <Heading className="font-[var(--font-display)] text-4xl font-bold">
+        <Heading className="font-[family-name:var(--font-display)] text-4xl font-bold">
           Log in
         </Heading>
 
@@ -110,7 +105,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               <p
                 id={`${usernameId}-error`}
                 role="alert"
-                className="mt-2 text-sm text-red-700"
+                className="mt-2 text-sm text-red-700 dark:text-red-300"
               >
                 {errors.username}
               </p>
@@ -142,7 +137,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               <p
                 id={`${passwordId}-error`}
                 role="alert"
-                className="mt-2 text-sm text-red-700"
+                className="mt-2 text-sm text-red-700 dark:text-red-300"
               >
                 {errors.password}
               </p>

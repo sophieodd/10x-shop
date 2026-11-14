@@ -9,6 +9,7 @@ type PromoCode = '10X10' | null
 type CartState = {
   items: CartItem[]
   promoCode: PromoCode
+  acknowledgedTaste: boolean
   toast: { count: number } | null
 }
 
@@ -16,11 +17,46 @@ type CartProviderProps = {
   children: ReactNode
 }
 
+function isCartItem(value: unknown): value is CartItem {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const item = value as Record<string, unknown>
+
+  return (
+    typeof item.id === 'number' &&
+    Number.isSafeInteger(item.id) &&
+    item.id > 0 &&
+    typeof item.title === 'string' &&
+    item.title.trim().length > 0 &&
+    typeof item.price === 'number' &&
+    Number.isFinite(item.price) &&
+    item.price >= 0 &&
+    typeof item.thumbnail === 'string' &&
+    item.thumbnail.trim().length > 0 &&
+    typeof item.stock === 'number' &&
+    Number.isSafeInteger(item.stock) &&
+    item.stock >= 0 &&
+    typeof item.quantity === 'number' &&
+    Number.isSafeInteger(item.quantity) &&
+    item.quantity >= 1 &&
+    item.quantity <= item.stock &&
+    (item.discountPercentage === undefined ||
+      (typeof item.discountPercentage === 'number' &&
+        Number.isFinite(item.discountPercentage) &&
+        item.discountPercentage >= 0 &&
+        item.discountPercentage <= 100))
+  )
+}
+
 function loadCart(): CartState {
   try {
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
     const parsedItems: unknown = savedCart ? JSON.parse(savedCart) : []
-    const items = Array.isArray(parsedItems) ? (parsedItems as CartItem[]) : []
+    const items = Array.isArray(parsedItems)
+  ? parsedItems.filter(isCartItem)
+  : []
 
     const promoCode =
       items.length > 0 &&
@@ -28,9 +64,19 @@ function loadCart(): CartState {
         ? '10X10'
         : null
 
-    return { items, promoCode, toast: null }
+    return {
+      items,
+      promoCode,
+      acknowledgedTaste: false,
+      toast: null,
+    }
   } catch {
-    return { items: [], promoCode: null, toast: null }
+    return {
+      items: [],
+      promoCode: null,
+      acknowledgedTaste: false,
+      toast: null,
+    }
   }
 }
 
@@ -45,7 +91,7 @@ function getCartMessage(count: number): string {
 
 export default function CartProvider({ children }: CartProviderProps) {
   const [cart, setCart] = useState<CartState>(loadCart)
-  const { items, promoCode, toast } = cart
+  const { items, promoCode, acknowledgedTaste, toast } = cart
 
   useEffect(() => {
     try {
@@ -116,7 +162,12 @@ export default function CartProvider({ children }: CartProviderProps) {
       const nextItems = current.items.filter((item) => item.id !== id)
 
       if (nextItems.length === 0) {
-        return { items: [], promoCode: null, toast: null }
+        return {
+          items: [],
+          promoCode: null,
+          acknowledgedTaste: false,
+          toast: null,
+        }
       }
 
       return { ...current, items: nextItems, toast: null }
@@ -124,7 +175,12 @@ export default function CartProvider({ children }: CartProviderProps) {
   }
 
   function clearCart() {
-    setCart({ items: [], promoCode: null, toast: null })
+    setCart({
+      items: [],
+      promoCode: null,
+      acknowledgedTaste: false,
+      toast: null,
+    })
   }
 
   function setPromoCode(code: PromoCode) {
@@ -132,6 +188,10 @@ export default function CartProvider({ children }: CartProviderProps) {
       ...current,
       promoCode: current.items.length > 0 ? code : null,
     }))
+  }
+
+  function setAcknowledgedTaste(acknowledgedTaste: boolean) {
+    setCart((current) => ({ ...current, acknowledgedTaste }))
   }
 
   return (
@@ -144,6 +204,8 @@ export default function CartProvider({ children }: CartProviderProps) {
         clearCart,
         promoCode,
         setPromoCode,
+        acknowledgedTaste,
+        setAcknowledgedTaste,
       }}
     >
       {children}
@@ -155,10 +217,10 @@ export default function CartProvider({ children }: CartProviderProps) {
       >
         {toast && (
           <div className="max-w-full bg-[var(--color-magenta)] px-5 py-3 text-white shadow-lg">
-            <p className="font-[var(--font-tech)] text-xs uppercase">
+            <p className="font-[family-name:var(--font-tech)] text-xs uppercase">
               Added to cart · {toast.count} {toast.count === 1 ? 'item' : 'items'}
             </p>
-            <p className="mt-1 font-[var(--font-display)] text-lg font-bold">
+            <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold">
               {getCartMessage(toast.count)}
             </p>
           </div>

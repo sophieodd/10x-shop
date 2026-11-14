@@ -64,7 +64,7 @@ export default function AccountMenu() {
 
         {user ? (
           <div className="p-6 pr-14">
-            <h2 className="font-[var(--font-display)] text-2xl font-bold">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">
               Your account
             </h2>
 

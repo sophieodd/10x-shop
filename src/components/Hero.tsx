@@ -3,18 +3,18 @@ import { Link } from 'react-router'
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-[#111116] px-6 py-16 text-white sm:px-10 lg:min-h-[540px] lg:py-20">
-      <p className="absolute bottom-8 left-6 hidden rotate-180 font-[var(--font-tech)] text-[9px] uppercase tracking-widest text-white/40 [writing-mode:vertical-rl] lg:block">
+      <p className="absolute bottom-8 left-6 hidden rotate-180 font-[family-name:var(--font-tech)] text-[9px] uppercase tracking-widest text-white/40 [writing-mode:vertical-rl] lg:block">
         Independent state of mind — est. 1991
       </p>
 
       <div className="mx-auto grid max-w-7xl items-center gap-14 md:grid-cols-2">
         <div>
-          <p className="flex items-center gap-3 font-[var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em]">
+          <p className="flex items-center gap-3 font-[family-name:var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em]">
             <span className="h-2 w-2 rounded-full bg-[var(--color-magenta)]" />
             Your settings. Your rules.
           </p>
 
-          <h1 className="mt-8 font-[var(--font-display)] text-6xl font-light leading-[0.85] tracking-[-0.07em] sm:text-7xl lg:text-[6.7rem]">
+          <h1 className="mt-8 font-[family-name:var(--font-display)] text-6xl font-light leading-[0.85] tracking-[-0.07em] sm:text-7xl lg:text-[6.7rem]">
             YOU CAN'T
             <br />
             <span className="font-medium text-[var(--color-magenta)]">
@@ -31,14 +31,14 @@ export default function Hero() {
 
           <Link
             to="/catalog"
-            className="mt-7 inline-flex items-center gap-8 bg-[var(--color-blue)] px-5 py-4 font-[var(--font-tech)] text-sm font-bold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-lavender)]"
+            className="mt-7 inline-flex items-center gap-8 bg-[var(--color-blue)] px-5 py-4 font-[family-name:var(--font-tech)] text-sm font-bold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-lavender)]"
           >
             Explore the drop <span aria-hidden="true">↓</span>
           </Link>
         </div>
 
         <div className="relative mx-auto w-full max-w-lg">
-          <p className="absolute -right-20 top-0 hidden font-[var(--font-tech)] text-[10px] font-bold leading-tight text-[var(--color-blue)] lg:block">
+          <p className="absolute -right-20 top-0 hidden font-[family-name:var(--font-tech)] text-[10px] font-bold leading-tight text-[var(--color-blue)] lg:block">
             CTRL
             <br />
             YOUR
@@ -53,7 +53,7 @@ export default function Hero() {
             />
 
             <div className="relative -rotate-2 border border-[var(--color-blue)] bg-[#111116]">
-              <div className="flex items-center justify-between border-b border-[var(--color-blue)] px-4 py-3 font-[var(--font-tech)] text-xs text-white/70">
+              <div className="flex items-center justify-between border-b border-[var(--color-blue)] px-4 py-3 font-[family-name:var(--font-tech)] text-xs text-white/70">
                 <span>CTRL_ME.exe</span>
                 <span className="text-lg text-[var(--color-blue)]">×</span>
               </div>
@@ -66,7 +66,7 @@ export default function Hero() {
                   +
                 </span>
 
-                <h2 className="text-center font-[var(--font-display)] text-5xl font-black leading-[0.9] tracking-tight text-[var(--color-magenta)] sm:text-6xl">
+                <h2 className="text-center font-[family-name:var(--font-display)] text-5xl font-black leading-[0.9] tracking-tight text-[var(--color-magenta)] sm:text-6xl">
                   DON'T
                   <br />
                   BLEND
@@ -78,7 +78,7 @@ export default function Hero() {
               <Link
                 to="/about"
                 aria-label="You weren’t supposed to click this. Read the CTRL ME story."
-                className="group flex items-center justify-between gap-3 border-t border-[var(--color-blue)] px-4 py-2 font-[var(--font-tech)] text-[10px] font-bold tracking-wider text-white/80 transition-colors hover:text-[var(--color-lavender)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--color-lavender)]"
+                className="group flex items-center justify-between gap-3 border-t border-[var(--color-blue)] px-4 py-2 font-[family-name:var(--font-tech)] text-[10px] font-bold tracking-wider text-white/80 transition-colors hover:text-[var(--color-lavender)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--color-lavender)]"
               >
                 <span className="underline decoration-white/40 underline-offset-4">
                   YOU WEREN’T SUPPOSED TO CLICK THIS
@@ -98,7 +98,7 @@ export default function Hero() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="41°39′24″ N 41°38′21″ E — View this Batumi Beach location on Google Maps"
-            className="mt-4 block text-right font-[var(--font-tech)] text-[9px] leading-relaxed text-white/40 hover:text-[var(--color-blue)]"
+            className="mt-4 block text-right font-[family-name:var(--font-tech)] text-[9px] leading-relaxed text-white/40 hover:text-[var(--color-blue)]"
           >
             41°39′24″ N
             <br />

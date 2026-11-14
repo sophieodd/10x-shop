@@ -56,10 +56,12 @@ export default function ProductCard({
           <img
             src={product.thumbnail}
             alt={product.title}
+            loading="lazy"
+            decoding="async"
             className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
           />
 
-          <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
+          <p className="mt-4 font-[family-name:var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
             {product.category}
             {product.brand && ` · ${product.brand}`}
           </p>

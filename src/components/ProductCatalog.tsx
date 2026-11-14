@@ -20,6 +20,64 @@ type Category = {
   slug: string
   name: string
 }
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isCategoryList(value: unknown): value is Category[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (category) =>
+        isRecord(category) &&
+        typeof category.slug === 'string' &&
+        typeof category.name === 'string',
+    )
+  )
+}
+
+function isCatalogProduct(value: unknown): value is CatalogProduct {
+  if (!isRecord(value)) return false
+
+  return (
+    typeof value.id === 'number' &&
+    Number.isSafeInteger(value.id) &&
+    value.id > 0 &&
+    typeof value.title === 'string' &&
+    value.title.trim().length > 0 &&
+    typeof value.price === 'number' &&
+    Number.isFinite(value.price) &&
+    value.price >= 0 &&
+    typeof value.thumbnail === 'string' &&
+    value.thumbnail.trim().length > 0 &&
+    typeof value.stock === 'number' &&
+    Number.isSafeInteger(value.stock) &&
+    value.stock >= 0 &&
+    typeof value.category === 'string' &&
+    (value.brand === undefined || typeof value.brand === 'string') &&
+    (value.rating === undefined ||
+      (typeof value.rating === 'number' &&
+        Number.isFinite(value.rating) &&
+        value.rating >= 0 &&
+        value.rating <= 5)) &&
+    (value.discountPercentage === undefined ||
+      (typeof value.discountPercentage === 'number' &&
+        Number.isFinite(value.discountPercentage) &&
+        value.discountPercentage >= 0 &&
+        value.discountPercentage <= 100))
+  )
+}
+
+function isProductsResponse(value: unknown): value is ProductsResponse {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.products) &&
+    value.products.every(isCatalogProduct) &&
+    typeof value.total === 'number' &&
+    Number.isSafeInteger(value.total) &&
+    value.total >= 0
+  )
+}
 
 type SearchDraft = {
   locationKey: string
@@ -327,7 +385,7 @@ function CatalogSkeleton() {
     <>
       <p
         role="status"
-        className="mt-8 font-[var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
+        className="mt-8 font-[family-name:var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
       >
         Loading questionable attachments...
       </p>
@@ -455,7 +513,12 @@ export default function ProductCatalog({
 
         if (!response.ok) throw new Error('Could not load categories')
 
-        const data: Category[] = await response.json()
+        const data: unknown = await response.json()
+        if (!isCategoryList(data)) {
+          throw new Error('Invalid category response')
+        }
+
+        if (!controller.signal.aborted) setCategories(data)
 
         if (!controller.signal.aborted) setCategories(data)
       } catch {
@@ -500,7 +563,11 @@ export default function ProductCatalog({
 
         if (!response.ok) throw new Error('Could not load products')
 
-        const data: ProductsResponse = await response.json()
+        const data: unknown = await response.json()
+        if (!isProductsResponse(data)) {
+          throw new Error('Invalid product response')
+        }
+
         nextResults = { requestUrl, status: 'success', data }
       } catch {
         nextResults = { requestUrl, status: 'error' }
@@ -674,17 +741,17 @@ export default function ProductCatalog({
       className="scroll-mt-24 bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)] sm:px-10"
     >
       <div className="mx-auto max-w-7xl">
-        <p className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-magenta)]">
+        <p className="font-[family-name:var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-magenta)]">
           {eyebrow}
         </p>
 
-        <Heading className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
+        <Heading className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold sm:text-5xl">
           {title}
         </Heading>
 
         <p className="mt-3 text-[var(--color-ink)]/70">{description}</p>
 
-        <div className="mt-6 flex flex-wrap items-start gap-3 font-[var(--font-display)] text-sm">
+        <div className="mt-6 flex flex-wrap items-start gap-3 font-[family-name:var(--font-display)] text-sm">
           {(categories.length > 0 || category || query) && (
             <FilterDropdown
               label="Filter by category"
@@ -737,7 +804,7 @@ export default function ProductCatalog({
 
         <p
           aria-live="polite"
-          className="mt-4 bg-[var(--color-lavender)] px-4 py-3 font-[var(--font-display)] text-sm font-normal text-[var(--color-ink)] sm:text-base"
+          className="mt-4 bg-[var(--color-lavender)] px-4 py-3 font-[family-name:var(--font-display)] text-sm font-normal text-[var(--color-ink)] sm:text-base"
         >
           {bannerMessage}
         </p>
@@ -746,7 +813,7 @@ export default function ProductCatalog({
 
         {currentResults?.status === 'error' && (
           <div className="mt-8">
-            <p role="alert" className="font-[var(--font-tech)] text-sm">
+            <p role="alert" className="font-[family-name:var(--font-tech)] text-sm">
               The product feed glitched.
             </p>
 

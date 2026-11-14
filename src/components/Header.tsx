@@ -95,7 +95,7 @@ export default function Header({ cartCount }: HeaderProps) {
 
   return (
     <>
-      <div className="bg-[var(--color-blue)] px-4 py-2 text-center font-[var(--font-tech)] text-[10px] font-bold uppercase tracking-[0.16em] text-white">
+      <div className="bg-[var(--color-blue)] px-4 py-2 text-center font-[family-name:var(--font-tech)] text-[10px] font-bold uppercase tracking-[0.16em] text-white">
         Rebellious. Glitchy. Techy. Unapologetic.
       </div>
 
@@ -108,7 +108,7 @@ export default function Header({ cartCount }: HeaderProps) {
             to="/"
             onClick={closePanel}
             aria-label="Ctrl+Me home"
-            className="inline-flex min-h-11 shrink-0 items-center font-[var(--font-display)] text-2xl font-bold tracking-[-0.08em] text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)]"
+            className="inline-flex min-h-11 shrink-0 items-center font-[family-name:var(--font-display)] text-2xl font-bold tracking-[-0.08em] text-[var(--color-magenta)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-blue)]"
           >
             <span>
               CTRL<sup className="text-[0.55em]">+ME</sup>
