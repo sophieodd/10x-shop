@@ -24,9 +24,9 @@ The URL parameters were restored correctly. The catalog section needed a separat
 
 ### Fix
 
-Added a scroll effect using the catalog section ref and requestAnimationFrame. Scroll margin left room for the sticky header.
+Added a scroll effect using the catalog section ref and `requestAnimationFrame`. Scroll margin left room for the sticky header.
 
-When the catalog received its own route, the return link and scroll handling were updated for /catalog.
+When the catalog received its own route, the return link and scroll handling were updated for `/catalog`.
 
 ### Result
 
@@ -55,13 +55,13 @@ Opening a product from further down the catalog kept the previous scroll positio
 
 ### Investigation and cause
 
-I reproduced the issue in the browser and reviewed ProductDetails.tsx in VS Code.
+I reproduced the issue in the browser and reviewed `ProductDetails.tsx` in VS Code.
 
 The product route loaded successfully but nothing reset the scroll position when the product changed.
 
 ### Fix
 
-Added a useEffect in ProductDetails that calls window.scrollTo when the product ID changes.
+Added a `useEffect` in `ProductDetails` that calls `window.scrollTo` when the product ID changes.
 
 ### Result
 
@@ -89,13 +89,13 @@ The header hid Shop and Catalog on smaller screens. There was no mobile menu to 
 
 ### Investigation and cause
 
-I reviewed Header.tsx in VS Code. The navigation used hidden with a responsive display class, so the links disappeared below the breakpoint.
+I reviewed `Header.tsx` in VS Code. The navigation used `hidden` with a responsive display class, so the links disappeared below the breakpoint.
 
 A second-row layout was tried first but made the mobile header feel crowded.
 
 ### Fix
 
-Added a hamburger button and an expandable navigation menu. The button exposes its open state with aria-expanded.
+Added a hamburger button and an expandable navigation menu. The button exposes its open state with `aria-expanded`.
 
 The menu closes after selecting a link, clicking outside or pressing Escape. Shop and Catalog also received separate routes.
 
@@ -110,3 +110,35 @@ Hiding desktop navigation needs a usable replacement on smaller screens. The rep
 ### Commit
 
 - [Mobile navigation and routes](https://github.com/sophieodd/10x-shop/commit/e624c1b)
+
+## 4. Cart overflowed in Firefox at 375px
+
+### Problem
+
+The cart page overflowed horizontally in Firefox at a 375px viewport width.
+
+### Steps to reproduce
+
+1. Open the cart in Firefox.
+2. Set the viewport width to 375px.
+3. Check for horizontal scrolling or content extending beyond the screen.
+
+### Investigation and cause
+
+I reproduced the overflow in Firefox. The cart grid and its children were keeping their minimum content widths instead of shrinking to fit the viewport.
+
+### Fix
+
+Added `min-w-0` to the cart containers and used `minmax(0, ...)` for the responsive grid columns.
+
+### Result
+
+The cart fits the 375px viewport in Firefox.
+
+### What I learned
+
+Grid children can keep their intrinsic minimum width. Setting a zero minimum lets them shrink within a narrow column.
+
+### Commit
+
+- [Firefox cart overflow fix](https://github.com/sophieodd/10x-shop/commit/714cd44006eef86608011508126419ca5a81677a)

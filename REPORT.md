@@ -10,11 +10,11 @@ The goal is a working shopping flow from browsing products to local order confir
 
 The shop is deployed on Vercel:
 
-https://sophies-10x-shop.vercel.app/
+[https://sophies-10x-shop.vercel.app/](https://sophies-10x-shop.vercel.app/)
 
-CORE implementation and verification are complete. The shopping flow has been checked locally and on the live site, including Chrome and Firefox.
+The CORE shopping flow has been checked locally and on the live site, including Chrome and Firefox. Type checking, linting and the production build pass. Responsive layouts, keyboard navigation, API failure states and direct route refresh have been checked.
 
-Type checking, linting and the production build pass. Responsive layouts, keyboard navigation, API failure states and direct route refresh have been checked.
+The November 14 Lighthouse runs surfaced two accessibility items to review: heading order on the Catalog page and color contrast on the Product details page.
 
 ## Planned and delivered
 
@@ -40,30 +40,32 @@ Type checking, linting and the production build pass. Responsive layouts, keyboa
 | Valid live routes and refresh | Complete |
 | Complete Chrome and Firefox flow | Complete |
 | Keyboard and API failure-state checks | Complete |
-| Lighthouse report | Complete |
+| Lighthouse checks across four pages | Captured; two accessibility items remain to review |
 
 ## Additional features delivered
 
 - Search with debounce and a header search panel
 - Category filters, price filtering and sorting
 - Pagination with URL state
-- Product image gallery and API reviews
+- Product image gallery, DummyJSON reviews and related products
+- Local review submission saved in the browser
 - Product discounts
-- Cart persistence
-- Promo code 10X10
+- Cart persistence and saved promo code
+- Promo code `10X10`
 - Shipping calculations and free shipping progress
-- Mini cart preview
-- Cart notifications
+- Mini cart preview and cart notifications
 - Catalog skeletons and retry
 - Light and dark themes with a saved preference
 - About and Fine Print pages
-- A link to the separately deployed CRM
+- Compressed About page images
+- Lazy-loaded product card thumbnails
+- Link to the separately deployed CRM
 
 ## Checks completed
 
-- npm run typecheck passed.
-- npm run lint passed.
-- npm run build passed.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
 - Guest checkout returned to checkout after login.
 - Invalid checkout fields displayed errors.
 - A valid order displayed confirmation and cleared the cart.
@@ -75,25 +77,26 @@ Type checking, linting and the production build pass. Responsive layouts, keyboa
 - After clearing the test trigger, Reload restored the shop.
 - An unknown live route displayed the custom 404 page.
 - Valid deployed routes opened directly and worked after refresh.
-- The complete shopping flow was checked on the live site in Chrome and Firefox.
+- The shopping flow was checked on the live site in Chrome and Firefox.
 - Keyboard navigation and API failure states were checked.
-- Lighthouse contrast, meta description and robots.txt checks passed after fixes.
+- About images were compressed to under 1 MB each.
+- Cart and product API data are validated before the app uses them.
 
 ## Lighthouse results
 
-The reports were captured on November 13, 2026 using Lighthouse 13.5.0 in Chromium 157.
+### November 13 homepage comparison
 
-Both runs tested the deployed homepage with mobile emulation, Slow 4G throttling and the dark theme.
+These earlier runs tested the deployed homepage with mobile emulation and Slow 4G throttling. Keep them as a historical before-and-after comparison.
 
 | Category | Before | After |
-| --- | --- | --- |
+| --- | ---: | ---: |
 | Performance | 97 | 97 |
 | Accessibility | 96 | 100 |
 | Best Practices | 100 | 100 |
 | SEO | 83 | 100 |
 
 | Metric | Before | After |
-| --- | --- | --- |
+| --- | ---: | ---: |
 | First Contentful Paint | 2.1 s | 2.1 s |
 | Largest Contentful Paint | 2.1 s | 2.1 s |
 | Total Blocking Time | 10 ms | 50 ms |
@@ -105,33 +108,49 @@ Reports:
 - [Before](docs/lighthouse/before.html)
 - [After](docs/lighthouse/after.html)
 
-### What changed
+### November 14 page runs
+
+These runs used Lighthouse 13.5.0 with mobile emulation on a Moto G Power device profile in Chromium 157. Network and CPU throttling were simulated.
+
+| Page | Performance | Accessibility | Best Practices | SEO |
+| --- | ---: | ---: | ---: | ---: |
+| Home | 98 | 100 | 100 | 100 |
+| Catalog | 90 | 98 | 100 | 100 |
+| Product details | 90 | 96 | 100 | 100 |
+| About | 97 | 100 | 100 | 100 |
+
+Reports:
+
+- [Home](docs/lighthouse/home-2026-11-14.html)
+- [Catalog](docs/lighthouse/catalog-2026-11-14.html)
+- [Product details](docs/lighthouse/product-3-2026-11-14.html)
+- [About](docs/lighthouse/about-2026-11-14.html)
+
+Each score is from a single run and may vary. The Catalog report flags heading order. The Product details report flags insufficient contrast on the “Back to the catalog” link. Those findings still need review.
+
+## What changed after the earlier reports
 
 White text needed stronger contrast on blue backgrounds. Small magenta text also needed different colors on light and dark surfaces.
 
-Lavender banners and discount badges were given dark text. The faint coordinates in the hero were made brighter.
+Lavender banners and discount badges were given dark text. The faint coordinates in the hero were made brighter. A meta description and `public/robots.txt` were added.
 
-A meta description and public/robots.txt were added.
+About images were compressed and product card thumbnails now load lazily. The latest reports cover four pages, though the remaining heading and contrast findings still need review.
 
-The second report also identified an accessible-name warning on the map link. Its label was updated to include the visible coordinates after that report was captured. The saved report therefore predates that correction.
+## Earlier production build snapshot
 
-Lighthouse results vary between runs. These results cover one page and theme, not every screen or interaction.
-
-## Latest production build
+These figures came from an earlier local production build and predate the latest changes.
 
 | Output | Size | Gzip |
-| --- | --- | --- |
+| --- | ---: | ---: |
 | Main JavaScript bundle | 338.54 kB | 103.45 kB |
 | CSS | 42.94 kB | 8.66 kB |
 | HTML | 1.56 kB | 0.76 kB |
-
-Type checking, linting and the production build passed after reorganising the source files into components, pages, context, hooks and utils.
 
 ## Problems and fixes
 
 ### Cart Context types
 
-The cart provider exposed setQuantity, removeItem and clearCart before the Context type included them. TypeScript reported errors in the provider and cart page.
+The cart provider exposed `setQuantity`, `removeItem` and `clearCart` before the Context type included them. TypeScript reported errors in the provider and cart page.
 
 Updating the Context type allowed the components to use the complete cart API.
 
@@ -143,25 +162,33 @@ Scroll effects were added for the catalog and product pages. The behavior was ch
 
 ### Mobile navigation
 
-The first header hid navigation links on small screens. A second-row layout was tried before adding a hamburger menu.
+The first header hid navigation links on mobile. A second-row layout was tried before adding a hamburger menu.
 
 The menu now exposes Shop and Catalog links and supports closing by selection, outside click and Escape.
 
-The scroll and navigation fixes are documented with commit links in DEBUG-LOG.md.
+### Firefox cart overflow
+
+At 375px wide, the cart page overflowed horizontally in Firefox. The cart grid and its columns were updated with `min-w-0` and `minmax(0, ...)` so their contents can shrink within the viewport.
+
+### Checkout acknowledgment after login
+
+Checkout now keeps the acknowledgment in shared cart state. This lets a guest return to checkout after logging in without losing the checkbox state.
 
 ### Theme contrast
 
 Some sections used the same color variable for normal text and permanently dark backgrounds. Changing the theme made those backgrounds light while their text stayed white.
 
-The permanently dark sections received fixed dark backgrounds. Other surfaces continue to follow the selected theme. Lighthouse helped identify additional text contrast problems.
+The permanently dark sections received fixed dark backgrounds. Other surfaces continue to follow the selected theme.
+
+The scroll and navigation fixes are documented with commit links in `DEBUG-LOG.md`.
 
 ## Development process
 
 Work was organised into feature branches and merged through pull requests.
 
-The catalog was split into ProductCatalog, ProductGrid and ProductCard. Shared cart and login state use Context providers. Pricing calculations are kept in utils/cartPricing.ts.
+The catalog was split into ProductCatalog, ProductGrid and ProductCard. Shared cart and login state use Context providers. Pricing calculations are kept in `utils/cartPricing.ts`.
 
-Page components, shared components, Context providers and utility functions were separated into folders. Imports were updated and the project passed type checking, linting and a production build after the moves.
+Page components, shared components, Context providers, hooks and utility functions are separated into folders.
 
 ## What I would improve
 
@@ -175,24 +202,18 @@ I would also update documentation after each milestone and keep a debugging note
 
 I used ChatGPT for code examples, explanations, debugging and Git guidance.
 
-It helped me connect shared state, forms, routes and pricing calculations.
+It helped me connect shared state, forms, routes and pricing calculations. I applied the changes in VS Code and checked the results in the browser.
 
-I applied the changes in VS Code and checked the results in the browser.
-
-I asked for revisions when the layout or behavior did not match the project.
-
-I chose the brand direction, text and visual style.
-
-TypeScript errors, browser behavior and Lighthouse results guided the corrections.
+I asked for revisions when the layout or behavior did not match the project. I chose the brand direction, text and visual style. TypeScript errors, browser behavior and Lighthouse results guided the corrections.
 
 ## Completion
 
-CORE implementation and verification are complete.
+The CORE shopping flow is implemented and has been checked locally and on the live site. Two accessibility findings from the latest Lighthouse runs still need review.
 
-Login and checkout remain local simulations. No real authentication or payment processing is included.
+Login and checkout are local simulations. No real authentication or payment processing is included.
 
 ## Later scope
 
-Orders, Profile, local review submission and related products remain outside the delivered scope.
+Orders and a Profile page remain outside the delivered scope. Formik/Yup login and route-level lazy loading have not been implemented.
 
-Other FULL items, including Formik/Yup login and route-level lazy loading, have not been completed.
+The merch showcase remains postponed. About and Fine Print have been delivered.

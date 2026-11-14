@@ -37,6 +37,10 @@ CTRL+ME brings together my interest in design, tech and questionable shopping de
 - Light and dark themes with a saved preference
 - About and Fine Print pages
 - Administrator link to the separate CRM project
+- Related products on product pages
+- Product reviews from DummyJSON and reviews submitted locally
+- Lazy-loaded product thumbnails
+- Compressed About page images
 
 ## Technology
 
@@ -151,16 +155,16 @@ The deployed homepage was tested with Lighthouse on November 13, 2026 using mobi
 | Best Practices | 100 |
 | SEO | 100 |
 
-Reports are saved in [docs/lighthouse](docs/lighthouse/). These scores describe the tested homepage and do not replace manual checks across the application.
+## Lighthouse
 
-See [REPORT.md](REPORT.md) for completed checks and remaining verification.
+Mobile Lighthouse reports for the Home, Catalog, Product details and About pages are saved in `docs/lighthouse/`. See [REPORT.md](REPORT.md) for the scores and test details.
 
 ## Current limitations
 
 - Product data and existing reviews come from DummyJSON.
 - Local data belongs to the current browser and is not synced between devices.
 - Order confirmation uses React state and is lost after a page reload.
-- Order history, Profile, local review submission and related products are not implemented.
+- Order history and Profile are not implemented.
 
 ## Credits
 
