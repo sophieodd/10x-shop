@@ -59,7 +59,7 @@ export default function ProductCard({
             className="aspect-square w-full bg-[var(--color-page)] p-5 object-contain"
           />
 
-          <p className="mt-4 font-[var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
+          <p className="mt-4 font-[family-name:var(--font-tech)] text-[10px] uppercase tracking-wider text-[var(--color-magenta)]">
             {product.category}
             {product.brand && ` · ${product.brand}`}
           </p>

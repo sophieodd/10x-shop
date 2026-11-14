@@ -327,7 +327,7 @@ function CatalogSkeleton() {
     <>
       <p
         role="status"
-        className="mt-8 font-[var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
+        className="mt-8 font-[family-name:var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
       >
         Loading questionable attachments...
       </p>
@@ -674,17 +674,17 @@ export default function ProductCatalog({
       className="scroll-mt-24 bg-[var(--color-page)] px-6 py-16 text-[var(--color-ink)] sm:px-10"
     >
       <div className="mx-auto max-w-7xl">
-        <p className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-magenta)]">
+        <p className="font-[family-name:var(--font-tech)] text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-magenta)]">
           {eyebrow}
         </p>
 
-        <Heading className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
+        <Heading className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold sm:text-5xl">
           {title}
         </Heading>
 
         <p className="mt-3 text-[var(--color-ink)]/70">{description}</p>
 
-        <div className="mt-6 flex flex-wrap items-start gap-3 font-[var(--font-display)] text-sm">
+        <div className="mt-6 flex flex-wrap items-start gap-3 font-[family-name:var(--font-display)] text-sm">
           {(categories.length > 0 || category || query) && (
             <FilterDropdown
               label="Filter by category"
@@ -737,7 +737,7 @@ export default function ProductCatalog({
 
         <p
           aria-live="polite"
-          className="mt-4 bg-[var(--color-lavender)] px-4 py-3 font-[var(--font-display)] text-sm font-normal text-[var(--color-ink)] sm:text-base"
+          className="mt-4 bg-[var(--color-lavender)] px-4 py-3 font-[family-name:var(--font-display)] text-sm font-normal text-[var(--color-ink)] sm:text-base"
         >
           {bannerMessage}
         </p>
@@ -746,7 +746,7 @@ export default function ProductCatalog({
 
         {currentResults?.status === 'error' && (
           <div className="mt-8">
-            <p role="alert" className="font-[var(--font-tech)] text-sm">
+            <p role="alert" className="font-[family-name:var(--font-tech)] text-sm">
               The product feed glitched.
             </p>
 

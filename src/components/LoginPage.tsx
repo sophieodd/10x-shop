@@ -77,7 +77,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       }
     >
       <div className="mx-auto max-w-md bg-[var(--color-surface)] p-6 sm:p-8">
-        <Heading className="font-[var(--font-display)] text-4xl font-bold">
+        <Heading className="font-[family-name:var(--font-display)] text-4xl font-bold">
           Log in
         </Heading>
 

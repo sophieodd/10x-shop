@@ -44,11 +44,11 @@ export default function FinePrintPage() {
     <main className="text-[var(--color-ink)]">
       <div className="mx-auto max-w-6xl px-5 pb-12 pt-14 sm:px-10 sm:pb-20 sm:pt-24">
         <header className="border-t-4 border-[var(--color-magenta)] pb-8 pt-6 sm:pb-12">
-          <p className="mb-4 max-w-xs font-[var(--font-tech)] text-xs font-bold leading-relaxed tracking-wider sm:max-w-none sm:text-sm">
+          <p className="mb-4 max-w-xs font-[family-name:var(--font-tech)] text-xs font-bold leading-relaxed tracking-wider sm:max-w-none sm:text-sm">
             OFFICIAL RULES OF AN UNOFFICIAL EMPIRE.
           </p>
 
-          <h1 className="font-[var(--font-display)] text-[clamp(3rem,10vw,9rem)] font-black leading-[0.85] tracking-[-0.075em]">
+          <h1 className="font-[family-name:var(--font-display)] text-[clamp(3rem,10vw,9rem)] font-black leading-[0.85] tracking-[-0.075em]">
             THE FINE PRINT
           </h1>
         </header>
@@ -64,12 +64,12 @@ export default function FinePrintPage() {
             >
               <span
                 aria-hidden="true"
-                className="font-[var(--font-tech)] text-sm font-bold tabular-nums text-[var(--color-magenta)] sm:text-base"
+                className="font-[family-name:var(--font-tech)] text-sm font-bold tabular-nums text-[var(--color-magenta)] sm:text-base"
               >
                 {String(index + 1).padStart(2, '0')}.
               </span>
 
-              <h2 className="font-[var(--font-display)] text-xl font-black leading-tight tracking-tight sm:text-2xl">
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-black leading-tight tracking-tight sm:text-2xl">
                 {rule.title}
               </h2>
 
@@ -81,11 +81,11 @@ export default function FinePrintPage() {
         </ol>
 
         <div className="mt-10 border-l-4 border-[var(--color-magenta)] bg-black px-5 py-7 text-white sm:mt-14 sm:px-8 sm:py-9">
-          <p className="font-[var(--font-display)] text-2xl font-black leading-tight tracking-tight sm:text-3xl">
+          <p className="font-[family-name:var(--font-display)] text-2xl font-black leading-tight tracking-tight sm:text-3xl">
             LEGAL DEPARTMENT: CURRENTLY GOOGLE-ING.
           </p>
 
-          <p className="mt-4 font-[var(--font-tech)] text-xs font-bold leading-relaxed tracking-wide text-white/75">
+          <p className="mt-4 font-[family-name:var(--font-tech)] text-xs font-bold leading-relaxed tracking-wide text-white/75">
             CTRL ME © 2026 - CHAOS, NOW WITH INFRASTRUCTURE.
           </p>
         </div>

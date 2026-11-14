@@ -182,10 +182,10 @@ export default function CartProvider({ children }: CartProviderProps) {
       >
         {toast && (
           <div className="max-w-full bg-[var(--color-magenta)] px-5 py-3 text-white shadow-lg">
-            <p className="font-[var(--font-tech)] text-xs uppercase">
+            <p className="font-[family-name:var(--font-tech)] text-xs uppercase">
               Added to cart · {toast.count} {toast.count === 1 ? 'item' : 'items'}
             </p>
-            <p className="mt-1 font-[var(--font-display)] text-lg font-bold">
+            <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold">
               {getCartMessage(toast.count)}
             </p>
           </div>

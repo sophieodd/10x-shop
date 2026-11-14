@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component<
       return (
         <main className="grid min-h-screen place-items-center bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
           <div className="text-center">
-            <h1 className="font-[var(--font-display)] text-4xl font-bold">
+            <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold">
               Something went wrong.
             </h1>
 

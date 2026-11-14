@@ -159,17 +159,17 @@ export default function AboutPage() {
     <main className="bg-[var(--color-page)] text-[var(--color-ink)]">
       <header className="border-b-8 border-[var(--color-magenta)] bg-[#111116] px-6 py-16 text-white sm:px-10 sm:py-24">
         <div className="mx-auto max-w-6xl">
-          <h1 className="font-[var(--font-display)] text-[clamp(3.5rem,13vw,10rem)] font-black leading-[0.85] tracking-[-0.08em]">
+          <h1 className="font-[family-name:var(--font-display)] text-[clamp(3.5rem,13vw,10rem)] font-black leading-[0.85] tracking-[-0.08em]">
             ABOUT <span className="text-[var(--color-lavender)]">US.</span>
           </h1>
 
           <div className="mt-8 flex flex-wrap items-end justify-between gap-8 border-t border-white/30 pt-6">
-            <p className="max-w-xl font-[var(--font-display)] text-xl font-bold leading-tight sm:text-3xl">
+            <p className="max-w-xl font-[family-name:var(--font-display)] text-xl font-bold leading-tight sm:text-3xl">
               A diploma project. An unexpected business empire. Several
               questionable decisions.
             </p>
 
-            <p className="-rotate-2 border border-[var(--color-lavender)] px-3 py-2 font-[var(--font-tech)] text-xs font-bold tracking-wide text-[var(--color-lavender)]">
+            <p className="-rotate-2 border border-[var(--color-lavender)] px-3 py-2 font-[family-name:var(--font-tech)] text-xs font-bold tracking-wide text-[var(--color-lavender)]">
               ACADEMIC STATUS: UNDER INVESTIGATION
             </p>
           </div>
@@ -177,7 +177,7 @@ export default function AboutPage() {
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-14 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16 lg:py-20">
-        <p className="max-w-xs font-[var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl">
+        <p className="max-w-xs font-[family-name:var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl">
           {introduction[0]}
         </p>
 
@@ -212,7 +212,7 @@ export default function AboutPage() {
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b-2 border-[var(--color-ink)] pb-5">
             <h2
               id="archives-title"
-              className="font-[var(--font-display)] text-[clamp(2.75rem,8vw,6rem)] font-black leading-none tracking-[-0.07em]"
+              className="font-[family-name:var(--font-display)] text-[clamp(2.75rem,8vw,6rem)] font-black leading-none tracking-[-0.07em]"
             >
               THE ARCHIVES
             </h2>
@@ -239,7 +239,7 @@ export default function AboutPage() {
                       />
 
                       <figcaption className="p-6 sm:p-9 lg:p-12">
-                        <h3 className="font-[var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl">
+                        <h3 className="font-[family-name:var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl">
                           {entry.title}
                         </h3>
 
@@ -302,7 +302,7 @@ export default function AboutPage() {
                     </div>
 
                     <figcaption className="relative mt-5 px-1">
-                      <h3 className="font-[var(--font-display)] text-xl font-black leading-tight tracking-tight sm:text-2xl">
+                      <h3 className="font-[family-name:var(--font-display)] text-xl font-black leading-tight tracking-tight sm:text-2xl">
                         {entry.title}
                       </h3>
 
@@ -327,7 +327,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl">
           <h2
             id="characters-title"
-            className="max-w-2xl font-[var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl"
+            className="max-w-2xl font-[family-name:var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-5xl"
           >
             A FEW MORE CHARACTERS IN THIS STORY
           </h2>
@@ -342,7 +342,7 @@ export default function AboutPage() {
                 key={character.title}
                 className="grid gap-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:gap-8"
               >
-                <dt className="font-[var(--font-tech)] text-sm font-bold">
+                <dt className="font-[family-name:var(--font-tech)] text-sm font-bold">
                   {character.title}
                 </dt>
 
@@ -362,7 +362,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl">
           <h2
             id="about-closing-title"
-            className="font-[var(--font-display)] text-3xl font-black leading-none tracking-tight sm:text-4xl"
+            className="font-[family-name:var(--font-display)] text-3xl font-black leading-none tracking-tight sm:text-4xl"
           >
             AND SOMEHOW, HERE WE ARE.
           </h2>
@@ -384,14 +384,14 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <p className="mt-10 border-t border-white/30 pt-8 font-[var(--font-display)] text-[clamp(2.5rem,8vw,7rem)] font-black leading-[0.95] tracking-[-0.06em]">
+          <p className="mt-10 border-t border-white/30 pt-8 font-[family-name:var(--font-display)] text-[clamp(2.5rem,8vw,7rem)] font-black leading-[0.95] tracking-[-0.06em]">
             You can’t CTRL me.
             <span className="mt-3 block text-[clamp(1.5rem,4vw,3.5rem)] leading-tight tracking-tight text-[var(--color-lavender)]">
               I was supposed to be doing an assignment.
             </span>
           </p>
 
-          <p className="mt-8 font-[var(--font-tech)] text-xs font-bold tracking-wide text-white/75">
+          <p className="mt-8 font-[family-name:var(--font-tech)] text-xs font-bold tracking-wide text-white/75">
             CTRL ME © 2026 - CHAOS, NOW WITH INFRASTRUCTURE.
           </p>
         </div>

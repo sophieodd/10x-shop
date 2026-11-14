@@ -20,7 +20,7 @@ export default function MiniCart() {
         aria-label="Cart preview"
         className="bg-[var(--color-surface)] p-4 text-[var(--color-ink)] shadow-xl"
       >
-        <h2 className="font-[var(--font-display)] text-lg font-bold">
+        <h2 className="font-[family-name:var(--font-display)] text-lg font-bold">
           Your cart
         </h2>
 

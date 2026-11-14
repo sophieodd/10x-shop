@@ -66,7 +66,7 @@ export default function CartPage() {
   return (
     <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)] sm:px-10">
       <div className="mx-auto max-w-7xl">
-        <h1 className="font-[var(--font-display)] text-4xl font-bold">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold">
           Your cart
         </h1>
 
@@ -190,7 +190,7 @@ export default function CartPage() {
             </div>
 
             <aside className="min-w-0 bg-[var(--color-surface)] p-5">
-              <h2 className="font-[var(--font-display)] text-xl font-bold">
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
                 Order summary
               </h2>
 
@@ -328,7 +328,7 @@ export default function CartPage() {
         >
           <h2
             id="cart-banner-title"
-            className="font-[var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-6xl"
+            className="font-[family-name:var(--font-display)] text-4xl font-black leading-none tracking-tight sm:text-6xl"
           >
             WE TAKE IT TOO PERSONALLY.
           </h2>
@@ -337,7 +337,7 @@ export default function CartPage() {
             Do not leave us with an abandoned cart.
           </p>
 
-          <p className="mt-3 font-[var(--font-tech)] text-xs sm:text-sm">
+          <p className="mt-3 font-[family-name:var(--font-tech)] text-xs sm:text-sm">
             we've already named your shopping basket.
           </p>
         </section>

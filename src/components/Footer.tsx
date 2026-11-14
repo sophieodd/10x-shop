@@ -39,7 +39,7 @@ export default function Footer() {
             <Link
               to="/"
               aria-label="Ctrl+Me home"
-              className={`${linkClass} font-[var(--font-display)] text-2xl font-bold tracking-[-0.08em]`}
+              className={`${linkClass} font-[family-name:var(--font-display)] text-2xl font-bold tracking-[-0.08em]`}
             >
               CTRL<sup className="ml-0.5 text-[0.55em]">+ME</sup>
             </Link>
@@ -67,7 +67,7 @@ export default function Footer() {
 
           <nav
             aria-label="Footer navigation"
-            className="flex gap-5 font-[var(--font-tech)] text-sm"
+            className="flex gap-5 font-[family-name:var(--font-tech)] text-sm"
           >
             <Link to="/catalog" className={linkClass}>
               Catalog
@@ -92,7 +92,7 @@ export default function Footer() {
           <section aria-labelledby="footer-contact">
             <h2
               id="footer-contact"
-              className="font-[var(--font-display)] font-semibold"
+              className="font-[family-name:var(--font-display)] font-semibold"
             >
               Contact
             </h2>
@@ -107,7 +107,7 @@ export default function Footer() {
           </section>
         </div>
 
-        <p className="mt-7 border-t border-white/35 pt-4 font-[var(--font-tech)] text-xs">
+        <p className="mt-7 border-t border-white/35 pt-4 font-[family-name:var(--font-tech)] text-xs">
           © {new Date().getFullYear()} Ctrl+Me. All rights reserved.
         </p>
       </div>

@@ -53,7 +53,7 @@ function ProductSkeleton() {
       <div className="mx-auto max-w-7xl">
         <p
           role="status"
-          className="font-[var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
+          className="font-[family-name:var(--font-tech)] text-sm font-semibold text-[var(--color-magenta)]"
         >
           Loading your potential attachment...
         </p>
@@ -160,7 +160,7 @@ function CustomerReviews({
     >
       <h2
         id="product-reviews-title"
-        className="font-[var(--font-display)] text-3xl font-bold"
+        className="font-[family-name:var(--font-display)] text-3xl font-bold"
       >
         Customer reviews <span className="text-lg">({reviews.length})</span>
       </h2>
@@ -299,7 +299,7 @@ function RelatedProducts({
     <section aria-labelledby="related-products-title" className="mt-12">
       <h2
         id="related-products-title"
-        className="font-[var(--font-display)] text-3xl font-bold"
+        className="font-[family-name:var(--font-display)] text-3xl font-bold"
       >
         Related products
       </h2>
@@ -445,7 +445,7 @@ function ProductDetailsContent({ id }: { id: number }) {
       <div className="mx-auto max-w-7xl">
         <Link
           to={catalogReturnLink}
-          className="font-[var(--font-tech)] text-sm text-[var(--color-blue)]"
+          className="font-[family-name:var(--font-tech)] text-sm text-[var(--color-blue)]"
         >
           ← Back to the catalog
         </Link>
@@ -484,12 +484,12 @@ function ProductDetailsContent({ id }: { id: number }) {
           <div>
             <Link
               to={`/catalog?${new URLSearchParams({ category: product.category })}`}
-              className="font-[var(--font-tech)] text-xs font-bold uppercase tracking-wider text-[var(--color-magenta)] underline"
+              className="font-[family-name:var(--font-tech)] text-xs font-bold uppercase tracking-wider text-[var(--color-magenta)] underline"
             >
               {product.category.replaceAll('-', ' ')}
             </Link>
 
-            <h1 className="mt-4 font-[var(--font-display)] text-4xl font-bold sm:text-5xl">
+            <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold sm:text-5xl">
               {product.title}
             </h1>
 

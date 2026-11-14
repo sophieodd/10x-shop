@@ -36,7 +36,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
         <div className="mx-auto max-w-xl">
-          <h1 className="font-[var(--font-display)] text-3xl font-bold">
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold">
             Thank you! Your order has been placed.
           </h1>
 
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
         <div className="mx-auto max-w-xl bg-[var(--color-surface)] p-6 sm:p-8">
-          <h1 className="font-[var(--font-display)] text-3xl font-bold">
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold">
             One quick acknowledgment
           </h1>
 
@@ -185,7 +185,7 @@ function CheckoutForm({ totals, onPlaceOrder }: CheckoutFormProps) {
   return (
     <main className="min-h-screen bg-[var(--color-page)] px-6 py-12 text-[var(--color-ink)]">
       <div className="mx-auto max-w-5xl">
-        <h1 className="font-[var(--font-display)] text-4xl font-bold">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold">
           Checkout
         </h1>
 
@@ -242,7 +242,7 @@ function CheckoutForm({ totals, onPlaceOrder }: CheckoutFormProps) {
           </form>
 
           <aside className="bg-[var(--color-surface)] p-5">
-            <h2 className="font-[var(--font-display)] text-xl font-bold">
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
               Order summary
             </h2>
 
