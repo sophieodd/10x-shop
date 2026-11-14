@@ -189,7 +189,7 @@ function ProductError({
 
         <Link
           to={catalogReturnLink}
-          className="font-semibold text-[var(--color-blue)] underline"
+          className="font-semibold text-[var(--color-link)] underline"
         >
           ← Back to the catalog
         </Link>

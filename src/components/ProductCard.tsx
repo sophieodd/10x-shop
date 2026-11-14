@@ -11,11 +11,13 @@ export type CatalogProduct = CartProduct & {
 type ProductCardProps = {
   product: CatalogProduct
   catalogSearch: string
+  headingLevel?: 'h2' | 'h3'
 }
 
 export default function ProductCard({
   product,
   catalogSearch,
+  headingLevel = 'h3',
 }: ProductCardProps) {
   const { items, addToCart } = useCart()
   const quantityInCart =
@@ -30,6 +32,7 @@ export default function ProductCard({
     discountPercentage,
   )
   const hasDiscount = salePrice < originalPrice
+  const ProductHeading = headingLevel
 
   let stockLabel = 'In stock'
   if (product.stock === 0) {
@@ -66,7 +69,9 @@ export default function ProductCard({
             {product.brand && ` · ${product.brand}`}
           </p>
 
-          <h3 className="mt-2 font-semibold">{product.title}</h3>
+          <ProductHeading className="mt-2 font-semibold">
+            {product.title}
+          </ProductHeading>
 
           {typeof product.rating === 'number' && (
             <p className="mt-1 text-sm font-semibold">

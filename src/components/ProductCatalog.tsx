@@ -867,7 +867,11 @@ export default function ProductCatalog({
               Showing {skip + 1}–{skip + products.length} of {total}
             </p>
 
-            <ProductGrid products={products} catalogSearch={search} />
+            <ProductGrid
+              products={products}
+              catalogSearch={search}
+              headingLevel={pathname === '/' ? 'h3' : 'h2'}
+            />
           </>
         )}
 
