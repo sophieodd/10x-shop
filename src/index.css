@@ -19,6 +19,9 @@
   --color-blue: #0878f9;
   --color-magenta: #ed009f;
   --color-magenta-soft: #fce4f2;
+
+  --color-link: var(--color-blue);
+  --color-magenta-readable: var(--color-magenta);
 }
 
 :root[data-theme="dark"] {
@@ -63,6 +66,13 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+/* Regular-weight Space Mono for tech labels. */
+[class~="font-[family-name:var(--font-tech)]"],
+[class~="font-[var(--font-tech)]"] {
+  font-family: var(--font-tech);
+  font-weight: 400;
 }
 
 ::selection {
@@ -128,19 +138,16 @@ textarea {
   height: 14px;
 }
 
-.theme-toggle[aria-pressed="false"]
-  .theme-toggle__icon--sun {
+.theme-toggle[aria-pressed="false"] .theme-toggle__icon--sun {
   color: #ffffff;
 }
 
-.theme-toggle[aria-pressed="true"]
-  .theme-toggle__thumb {
+.theme-toggle[aria-pressed="true"] .theme-toggle__thumb {
   transform: translateX(22px);
   background-color: var(--color-lavender);
 }
 
-.theme-toggle[aria-pressed="true"]
-  .theme-toggle__icon--moon {
+.theme-toggle[aria-pressed="true"] .theme-toggle__icon--moon {
   color: #111116;
 }
 
@@ -148,42 +155,4 @@ textarea {
   .theme-toggle__thumb {
     transition: none;
   }
-}
-
-/* Contrast fixes for brand backgrounds and text */
-
-/* White text remains readable on blue backgrounds. */
-[class~="bg-[var(--color-blue)]"] {
-  background-color: #0065dc;
-}
-
-/* White text remains readable on magenta backgrounds. */
-[class~="bg-[var(--color-magenta)]"] {
-  background-color: #b8007b;
-}
-
-/* Small magenta text on light surfaces. */
-[class~="text-[var(--color-magenta)]"] {
-  color: #b8007b;
-}
-
-/* Small magenta text on dark surfaces. */
-:root[data-theme="dark"] [class~="text-[var(--color-magenta)]"] {
-  color: #ff63c4;
-}
-
-/* Lavender backgrounds always need dark text. */
-[class~="bg-[var(--color-lavender)]"] {
-  color: #111116;
-}
-
-/* Keep magenta text bright inside permanently dark sections. */
-[class~="bg-[#111116]"] [class~="text-[var(--color-magenta)]"],
-[class~="bg-black"] [class~="text-[var(--color-magenta)]"] {
-  color: #ff63c4;
-}
-
-/* Hero coordinates and the small vertical caption. */
-[class~="bg-[#111116]"] [class~="text-white/40"] {
-  color: #a6a6ad;
 }
