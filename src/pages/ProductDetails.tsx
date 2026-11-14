@@ -31,7 +31,94 @@ type ProductResult =
   | { status: 'not-found' }
   | { status: 'error'; message: string }
 
-const minimumLoadingTime = 500
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isProductReview(value: unknown): value is ProductReview {
+  return (
+    isRecord(value) &&
+    typeof value.reviewerName === 'string' &&
+    value.reviewerName.trim().length > 0 &&
+    typeof value.comment === 'string' &&
+    value.comment.trim().length > 0 &&
+    typeof value.date === 'string' &&
+    Number.isFinite(Date.parse(value.date)) &&
+    typeof value.rating === 'number' &&
+    Number.isInteger(value.rating) &&
+    value.rating >= 1 &&
+    value.rating <= 5
+  )
+}
+
+function isCatalogProduct(value: unknown): value is CatalogProduct {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'number' &&
+    Number.isSafeInteger(value.id) &&
+    value.id > 0 &&
+    typeof value.title === 'string' &&
+    value.title.trim().length > 0 &&
+    typeof value.price === 'number' &&
+    Number.isFinite(value.price) &&
+    value.price >= 0 &&
+    typeof value.thumbnail === 'string' &&
+    value.thumbnail.trim().length > 0 &&
+    typeof value.stock === 'number' &&
+    Number.isSafeInteger(value.stock) &&
+    value.stock >= 0 &&
+    typeof value.category === 'string' &&
+    (value.brand === undefined || typeof value.brand === 'string') &&
+    (value.rating === undefined ||
+      (typeof value.rating === 'number' &&
+        Number.isFinite(value.rating) &&
+        value.rating >= 0 &&
+        value.rating <= 5)) &&
+    (value.discountPercentage === undefined ||
+      (typeof value.discountPercentage === 'number' &&
+        Number.isFinite(value.discountPercentage) &&
+        value.discountPercentage >= 0 &&
+        value.discountPercentage <= 100))
+  )
+}
+
+function isProductDetailsData(value: unknown): value is ProductDetailsData {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'number' &&
+    Number.isSafeInteger(value.id) &&
+    value.id > 0 &&
+    typeof value.title === 'string' &&
+    typeof value.description === 'string' &&
+    typeof value.category === 'string' &&
+    typeof value.price === 'number' &&
+    Number.isFinite(value.price) &&
+    value.price >= 0 &&
+    typeof value.stock === 'number' &&
+    Number.isSafeInteger(value.stock) &&
+    value.stock >= 0 &&
+    typeof value.thumbnail === 'string' &&
+    Array.isArray(value.images) &&
+    value.images.every((image) => typeof image === 'string') &&
+    (value.discountPercentage === undefined ||
+      (typeof value.discountPercentage === 'number' &&
+        Number.isFinite(value.discountPercentage) &&
+        value.discountPercentage >= 0 &&
+        value.discountPercentage <= 100)) &&
+    (value.reviews === undefined ||
+      (Array.isArray(value.reviews) && value.reviews.every(isProductReview)))
+  )
+}
+
+function isRelatedProductsResponse(
+  value: unknown,
+): value is { products: CatalogProduct[] } {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.products) &&
+    value.products.every(isCatalogProduct)
+  )
+}
 
 function useCatalogReturnLink() {
   const { state } = useLocation()
@@ -129,7 +216,13 @@ function CustomerReviews({
     const comment = String(fields.get('comment') ?? '').trim()
     const rating = Number(fields.get('rating'))
 
-    if (!reviewerName || !comment || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+    if (
+      !reviewerName ||
+      !comment ||
+      !Number.isInteger(rating) ||
+      rating < 1 ||
+      rating > 5
+    ) {
       setError('Enter your name, select a rating and write a comment.')
       return
     }
@@ -217,8 +310,15 @@ function CustomerReviews({
 
         <label className="block text-sm font-semibold">
           Rating
-          <select name="rating" required defaultValue="" className={fieldClassName}>
-            <option value="" disabled>Select a rating</option>
+          <select
+            name="rating"
+            required
+            defaultValue=""
+            className={fieldClassName}
+          >
+            <option value="" disabled>
+              Select a rating
+            </option>
             {[5, 4, 3, 2, 1].map((rating) => (
               <option key={rating} value={rating}>
                 {rating} out of 5
@@ -238,7 +338,11 @@ function CustomerReviews({
           />
         </label>
 
-        {error && <p role="alert" className="text-sm">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -274,7 +378,9 @@ function RelatedProducts({
 
         if (!response.ok) return
 
-        const data: { products: CatalogProduct[] } = await response.json()
+        const data: unknown = await response.json()
+
+        if (!isRelatedProductsResponse(data)) return
 
         if (!controller.signal.aborted) {
           setProducts(
@@ -317,6 +423,7 @@ function ProductDetailsContent({ id }: { id: number }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const reviewStorageKey = `10x-shop:reviews:${id}`
+
   const [localReviews, setLocalReviews] = useState<ProductReview[]>(() => {
     try {
       const saved = window.localStorage.getItem(reviewStorageKey)
@@ -324,19 +431,7 @@ function ProductDetailsContent({ id }: { id: number }) {
 
       if (!Array.isArray(parsed)) return []
 
-      return parsed.filter((review): review is ProductReview => {
-        return (
-          review !== null &&
-          typeof review === 'object' &&
-          typeof review.reviewerName === 'string' &&
-          typeof review.comment === 'string' &&
-          typeof review.date === 'string' &&
-          Number.isFinite(Date.parse(review.date)) &&
-          Number.isInteger(review.rating) &&
-          review.rating >= 1 &&
-          review.rating <= 5
-        )
-      })
+      return parsed.filter(isProductReview)
     } catch {
       return []
     }
@@ -344,8 +439,6 @@ function ProductDetailsContent({ id }: { id: number }) {
 
   useEffect(() => {
     const controller = new AbortController()
-    const startedAt = performance.now()
-    let displayTimer: number | undefined
 
     async function loadProduct() {
       let nextResult: ProductResult
@@ -360,7 +453,12 @@ function ProductDetailsContent({ id }: { id: number }) {
         } else {
           if (!response.ok) throw new Error('Could not load this product')
 
-          const product: ProductDetailsData = await response.json()
+          const product: unknown = await response.json()
+
+          if (!isProductDetailsData(product) || product.id !== id) {
+            throw new Error('Invalid product response')
+          }
+
           nextResult = { status: 'success', product }
         }
       } catch {
@@ -370,27 +468,14 @@ function ProductDetailsContent({ id }: { id: number }) {
         }
       }
 
-      if (controller.signal.aborted) return
-
-      const remainingTime =
-        minimumLoadingTime - (performance.now() - startedAt)
-
-      if (remainingTime <= 0) {
+      if (!controller.signal.aborted) {
         setResult(nextResult)
-        return
       }
-
-      displayTimer = window.setTimeout(() => {
-        setResult(nextResult)
-      }, remainingTime)
     }
 
     void loadProduct()
 
-    return () => {
-      controller.abort()
-      window.clearTimeout(displayTimer)
-    }
+    return () => controller.abort()
   }, [id, retryCount])
 
   if (!result) return <ProductSkeleton />
@@ -418,8 +503,8 @@ function ProductDetailsContent({ id }: { id: number }) {
 
   const { product } = result
   const reviews = [...localReviews, ...(product.reviews ?? [])].sort(
-  (first, second) => Date.parse(second.date) - Date.parse(first.date),
-)
+    (first, second) => Date.parse(second.date) - Date.parse(first.date),
+  )
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
@@ -430,6 +515,7 @@ function ProductDetailsContent({ id }: { id: number }) {
     window.localStorage.setItem(reviewStorageKey, JSON.stringify(nextReviews))
     setLocalReviews(nextReviews)
   }
+
   const originalPrice = Math.round(product.price * 100)
   const salePrice = getDiscountedUnitPriceCents(
     product.price,
