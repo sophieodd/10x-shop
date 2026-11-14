@@ -86,8 +86,8 @@ export default function CartPage() {
             </Link>
           </div>
         ) : (
-          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[2fr_1fr]">
-            <div>
+          <div className="mt-8 grid min-w-0 grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div className="min-w-0">
               <ul className="space-y-4">
                 {items.map((item) => {
                   const originalUnitPrice = Math.round(item.price * 100)
@@ -188,7 +188,7 @@ export default function CartPage() {
               </button>
             </div>
 
-            <aside className="bg-[var(--color-surface)] p-5">
+            <aside className="min-w-0 bg-[var(--color-surface)] p-5">
               <h2 className="font-[var(--font-display)] text-xl font-bold">
                 Order summary
               </h2>
